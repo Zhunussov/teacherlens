@@ -1,0 +1,17 @@
+row_id,QuestionId,QuestionText,MC_Answer,StudentExplanation,Category,Misconception
+s01,q1,Which is greater 0.8 or 0.35?,0.8,Eight tenths is greater than thirty five hundredths,True_Correct,NA
+s02,q1,Which is greater 0.8 or 0.35?,0.35,Thirty five is bigger than eight,False_Misconception,Whole number comparison
+s03,q2,Which is greater 0.9 or 0.42?,0.9,Nine tenths is greater than forty two hundredths,True_Correct,NA
+s04,q2,Which is greater 0.9 or 0.42?,0.42,Forty two is bigger than nine,False_Misconception,Whole number comparison
+s05,q3,Which is greater 0.7 or 0.24?,0.7,Seven tenths is greater than twenty four hundredths,True_Correct,NA
+s06,q3,Which is greater 0.7 or 0.24?,0.24,Twenty four is bigger than seven,False_Misconception,Whole number comparison
+s07,q4,Which is greater 0.6 or 0.15?,0.6,Six tenths is greater than fifteen hundredths,True_Correct,NA
+s08,q4,Which is greater 0.6 or 0.15?,0.15,Fifteen is bigger than six,False_Misconception,Whole number comparison
+s09,q5,Which is greater 0.5 or 0.12?,0.5,Five tenths is greater than twelve hundredths,True_Correct,NA
+s10,q5,Which is greater 0.5 or 0.12?,0.12,Twelve is bigger than five,False_Misconception,Whole number comparison
+s11,q6,Which is greater 0.4 or 0.13?,0.4,Four tenths is greater than thirteen hundredths,True_Correct,NA
+s12,q6,Which is greater 0.4 or 0.13?,0.13,Thirteen is bigger than four,False_Misconception,Whole number comparison
+s13,q7,Which is greater 0.3 or 0.11?,0.3,Three tenths is greater than eleven hundredths,True_Correct,NA
+s14,q7,Which is greater 0.3 or 0.11?,0.11,Eleven is bigger than three,False_Misconception,Whole number comparison
+s15,q8,Which is greater 0.2 or 0.14?,0.2,Two tenths is greater than fourteen hundredths,True_Correct,NA
+s16,q8,Which is greater 0.2 or 0.14?,0.14,Fourteen is bigger than two,False_Misconception,Whole number comparison
