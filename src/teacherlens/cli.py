@@ -16,6 +16,12 @@ def main(argv=None):
     commands = parser.add_subparsers(dest="command", required=True)
     train = commands.add_parser("train")
     train.add_argument("--config", required=True)
+    research = commands.add_parser("research", help="Three-way grouped model selection and final evaluation")
+    research.add_argument("--config", required=True)
+    research.add_argument("--output-dir", help="New artifact directory; relative to the current directory")
+    verify = commands.add_parser("verify-research", help="Compare two trusted local research runs")
+    verify.add_argument("--first", required=True)
+    verify.add_argument("--second", required=True)
     predict = commands.add_parser("predict", help="Load only trusted local model files")
     predict.add_argument("--model", required=True)
     predict.add_argument("--data", required=True)
@@ -26,6 +32,18 @@ def main(argv=None):
             report = run_experiment(load_config(args.config))
             print(report["interpretation"])
             print(f"Artifacts saved. Data kind: {report['data_kind']}")
+        elif args.command == "research":
+            from dataclasses import replace
+            from .research import load_research_config, run_research
+            config = load_research_config(args.config)
+            if args.output_dir:
+                config = replace(config, output_dir=str(Path(args.output_dir).resolve()))
+            report = run_research(config)
+            print(f"Research artifacts saved. Data kind: {report['data_kind']}")
+        elif args.command == "verify-research":
+            from .reproducibility import verify_research_runs
+            verify_research_runs(args.first, args.second)
+            print("Reproducibility verified: reports, split manifests and fitted model arrays are identical.")
         else:
             output = Path(args.output)
             if output.exists():

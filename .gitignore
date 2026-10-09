@@ -15,4 +15,9 @@ outputs/
 *.parquet
 *.zip
 *.joblib
+*.pkl
+*.pickle
+*.npz
+*.npy
+reports/private/
 !tests/fixtures/synthetic.csv
