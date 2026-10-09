@@ -12,7 +12,7 @@ The tracked synthetic fixture contains 16 hand-written rows across eight toy dec
 - Python compilation and dependency compatibility checks passed.
 - Git ignore checks confirmed raw data, credentials and model outputs are excluded while the synthetic fixture is allowed.
 
-This validates software behavior on synthetic inputs, not model quality on student work. The repository includes a CI workflow; remote CI has not yet been run.
+This validates software behavior on synthetic inputs, not model quality on student work. The GitHub CI workflow also passed for foundation commit `fac50ff02cda30d6a858390b4db8358f3b7be6f0`; see the [validation run](https://github.com/Zhunussov/teacherlens/actions/runs/37957535066). Later push and pull-request checks are available in GitHub Actions.
 
 Once authorized labeled data is available:
 
