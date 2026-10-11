@@ -1,0 +1,91 @@
+{
+  "predicted_composite_counts": {
+    "False_Correct:NA": 290,
+    "False_Misconception:Adding_across": 2,
+    "False_Misconception:Denominator-only_change": 3,
+    "False_Misconception:Irrelevant": 1,
+    "False_Neither:NA": 4325,
+    "True_Correct:NA": 4459,
+    "True_Neither:NA": 365
+  },
+  "true_composite_counts": {
+    "False_Correct:NA": 37,
+    "False_Misconception:Division": 58,
+    "False_Misconception:Incomplete": 1296,
+    "False_Misconception:Positive": 539,
+    "False_Misconception:Subtraction": 617,
+    "False_Misconception:Tacking": 124,
+    "False_Misconception:WNB": 241,
+    "False_Neither:NA": 2249,
+    "True_Correct:NA": 2612,
+    "True_Misconception:Division": 5,
+    "True_Misconception:Incomplete": 8,
+    "True_Misconception:Positive": 2,
+    "True_Misconception:Subtraction": 2,
+    "True_Misconception:Tacking": 160,
+    "True_Misconception:WNB": 8,
+    "True_Neither:NA": 1487
+  },
+  "argmax_binary_screening": {
+    "rows": 9445,
+    "positive_rows": 3060,
+    "threshold": 0.5,
+    "accuracy": 0.6753838009528851,
+    "precision": 0.0,
+    "recall": 0.0,
+    "f1": 0.0,
+    "average_precision": 0.3239809422975119,
+    "false_positive_rate": 0.0009397024275646045,
+    "confusion_matrix": [
+      [
+        6379,
+        6
+      ],
+      [
+        3060,
+        0
+      ]
+    ]
+  },
+  "probability_sum_binary_screening": {
+    "rows": 9445,
+    "positive_rows": 3060,
+    "threshold": 0.5,
+    "accuracy": 0.542932768660667,
+    "precision": 0.3981196304101151,
+    "recall": 0.8026143790849674,
+    "f1": 0.5322353451078123,
+    "average_precision": 0.34690699579458706,
+    "false_positive_rate": 0.5815191855912294,
+    "confusion_matrix": [
+      [
+        2672,
+        3713
+      ],
+      [
+        604,
+        2456
+      ]
+    ]
+  },
+  "misconception": {
+    "rows": 3060,
+    "top_1_accuracy": 0.0,
+    "top_3_recall": 0.0,
+    "map_at_3": 0.0,
+    "candidate_label_coverage": 0.5022875816993464
+  },
+  "other": {
+    "rows": 6385,
+    "top_1_accuracy": 0.5816758026624902,
+    "top_3_recall": 0.9022709475332811,
+    "map_at_3": 0.7203863221091098,
+    "candidate_label_coverage": 1.0
+  },
+  "name_question_coverage": {
+    "1": 32,
+    "2": 2,
+    "3": 1
+  },
+  "scope": "Historical inspected Milestone 2 test; descriptive post-hoc audit, never used for new fold selection"
+}

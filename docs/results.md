@@ -127,7 +127,7 @@ teacherlens verify-research --first outputs/real-evaluation-seed42 --second outp
 
 Dataset SHA-256: `f347a34f62be3b1bc188b11290f5615b5bf050a7b7c3aeb21b1966feed7615a0`. Python 3.11.9; one numerical thread. Version pins and computational-source hashes are in the aggregate snapshot. The runs occurred on the working tree based on foundation commit ab66d53; their local metadata truthfully records that parent commit and dirty status. The source used is subsequently committed on feature/real-data-evaluation. Dataset identity was checked by local hash, not independently verified against a Kaggle checksum.
 
-## Verification and Milestone 3
+## Historical verification and proposed Milestone 3
 
 All 32 tests passed, including deduplication with conflicting annotations, disjoint three-way partitions, validation-only selection, final-fit isolation, weighted/test-supported macro F1, repeat comparison and detection of deliberately changed metrics. Python compilation and dependency checks passed. Two complete real experiments had exactly equal aggregate reports, retained-row/split manifests, vocabulary, IDF, class ordering, coefficients, intercepts and iteration counts. This is exact reproducibility on the tested environment, not across arbitrary hardware. No restricted files are staged or committed.
 
@@ -138,3 +138,18 @@ Priorities for Milestone 3:
 3. Compare a licensed local transformer on identical deduplicated partitions and fixed search budgets; fit only development data, freeze selection before outer tests, and record tokenizer/checkpoint version, cost and seeds. Do not assume a transformer solves missing-label coverage.
 4. Obtain authorized multilingual explanations and expert labels; measure each language and cross-language transfer. Group translated/paraphrased versions with the original question family. Translation-only tests do not establish natural multilingual classroom performance.
 5. Investigate annotation conflicts with qualified reviewers without publishing student text; evaluate calibration, abstention and teacher review before any service or frontend integration.
+
+## Milestone 3 follow-up (2026-10-11)
+
+The historical test above has been inspected and informed further research; it is not an untouched future test. New nested question-group development cross-validation covers all 15 available questions, with all model selection inside the five outer training folds. See the [complete misconception-aware comparison](misconception-aware-results.md) and [reviewed aggregate snapshot](metrics/misconception-aware-cv.json).
+
+| Approach | Pooled accuracy | Macro F1 (65 observed codes) | Positive MAP@3 | Correct positive / 9,607 |
+|---|---:|---:|---:|---:|
+| Majority class | 0.402558 | 0.008831 | 0.000000 | 0 |
+| Class-frequency ranking | 0.402558 | 0.008831 | 0.000000 | 0 |
+| TF-IDF composite | 0.274305 | 0.016225 | 0.000000 | 0 |
+| Hierarchical TF-IDF | 0.306396 | 0.015569 | 0.000000 | 0 |
+| Semantic training centroids | 0.301363 | 0.015831 | 0.002984 | 4 |
+| Semantic partial descriptions | 0.289766 | 0.015190 | 0.000208 | 0 |
+
+Binary screening pooled precision/recall/F1 are 0.279385 / 0.578953 / 0.376893; fold F1 is 0.279202 ± 0.218374. Always-positive F1 is 0.421665. Overall unseen-composite rate is 20.96%, affecting 78.47% of positive responses. No model is reliable for diagnosis, and no Kazakh/Russian validation has occurred. Complete per-question and per-class results, oracle-name ablations, reporting-correction provenance, reproducibility evidence and next-milestone recommendations appear in the follow-up report.

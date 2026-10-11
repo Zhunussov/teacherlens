@@ -1,8 +1,8 @@
 # TeacherLens
 
-An individual AI research project for detecting mathematical misconceptions in students' written solutions. The foundation supplies a reproducible TF-IDF + Logistic Regression baseline; the first real-data experiment adds separate grouped model selection and final evaluation. No frontend or hosted service is included.
+An individual AI research project for detecting mathematical misconceptions in students' written solutions. The foundation supplies a reproducible TF-IDF + Logistic Regression baseline; research adds grouped evaluation, binary screening, hierarchical classification and local semantic retrieval. No frontend or hosted service is included.
 
-**First real evaluation completed locally:** grouped test accuracy 0.393224, weighted F1 0.290038 and MAP@3 0.486995. No misconception-labeled test row was classified correctly. This baseline is not ready for teacher-facing diagnosis. Restricted data and models are never bundled; the only tracked row-level data is a hand-authored synthetic test fixture. See [measured results](docs/results.md).
+**Milestone 3 completed locally:** five nested question-group folds cover 35,960 deduplicated responses and all 15 questions. Semantic centroids correctly diagnose only 4/9,607 positive responses (positive MAP@3 0.002984); binary screening F1 0.376893 falls below always-positive F1 0.421665. No tested model is ready for teacher-facing diagnosis. See the [comparison and audit](docs/misconception-aware-results.md) and [historical first evaluation](docs/results.md). Restricted data and models are never bundled; the only tracked row-level data is a hand-authored synthetic test fixture.
 
 ## Setup
 
@@ -30,7 +30,7 @@ All synthetic artifacts carry `data_kind=synthetic`. Outputs are ignored by Git.
 
 The [data tab](https://www.kaggle.com/competitions/map-charting-student-math-misunderstandings/data) lists MIT, but the [official rules](https://www.kaggle.com/competitions/map-charting-student-math-misunderstandings/rules) specify CC BY-NC 4.0 data use plus additional sharing restrictions. MIT is separately listed for the winning submission. Review your eligibility and the rules, then obtain CSVs through your own authorized Kaggle access for permitted non-commercial research. Place `train.csv` under `data/raw/`; data is never downloaded automatically. Credentials stay outside the repository. Never commit or redistribute restricted competition data. See the licensing/access findings in [research](docs/research.md).
 
-After setup and authorized data placement, this **single command selects on validation data, refits on train+validation and evaluates the final question-group test**:
+The historical experiment can be reproduced with this command, which selects on validation data and refits before evaluating its question-group test. That test has now been inspected and informed development; it is not an untouched evaluation for future model selection:
 
 ```powershell
 teacherlens research --config configs/real-evaluation.json
@@ -52,13 +52,40 @@ Research `report.json` contains validation selection, accuracy, both macro F1 po
 
 Prediction emits a research CSV with `row_id`, `Category:Misconception`, and model `data_kind`. It is not a competition submission exporter. Only load model files you created or trust: joblib deserialization can execute code.
 
+## Misconception-aware research
+
+Install the optional local embedding runtime (no GPU or paid service), then run the fixed nested comparison:
+
+```powershell
+python -m pip install -e ".[embeddings]"
+teacherlens compare --config configs/misconception-aware.json
+```
+
+The first run downloads a pinned public English MiniLM checkpoint/tokenizer (~91 MB) and encodes responses locally. All subsequent training is local; no student text is uploaded. Five outer folds cover all 15 questions, with one independent inner grouped holdout for C/threshold/temperature selection. Exact TF-IDF diagnosis, binary screening, a shared-name hierarchy, semantic training centroids and a partial public-description catalogue are compared against frequency references. See the [fixed protocol](docs/misconception-aware-protocol.md). Existing outputs are protected; use a fresh directory for a repeat:
+
+```powershell
+teacherlens compare --config configs/misconception-aware.json --output-dir outputs/misconception-aware-repeat
+teacherlens verify-comparison --first outputs/misconception-aware-cv --second outputs/misconception-aware-repeat
+```
+
+To repeat the independent frozen-embedding sample check and prepare a reviewed aggregate export:
+
+```powershell
+python scripts/verify_embeddings.py --config configs/misconception-aware.json --output outputs/embedding-verification.json
+python scripts/export_comparison.py --first outputs/misconception-aware-cv --second outputs/misconception-aware-repeat --embedding-verification outputs/embedding-verification.json --output docs/metrics/misconception-aware-cv.json
+```
+
+The export verifies complete run equality and excludes private manifests and embedding input/vector hashes. Review its contents before publication. The encoder check re-encodes the first 32 rows with their original batch shape; it does not claim a second full encoding of all rows.
+
+Full local reports, split manifests, OOF probabilities/rankings and error references remain under ignored `outputs/`. Embedding caches are bound to ordered inputs and the frozen recipe; change the cache path if data/preprocessing changes. Public reports must exclude row identifiers, embeddings and the private embedding-input hash. Cross-validation is development evidence on a very small question set, not independent classroom validation. Binary screening predicts MAP's error annotation; it does not establish a persistent misconception. No Kazakh/Russian support is claimed.
+
 ## Configuration and checks
 
 Paths in JSON configs resolve relative to the config file, regardless of working directory. Copy a config to set the input/output paths, seed, group holdout fraction, vocabulary cap, word n-grams, regularization strength `C`, class weighting and iteration limit. Unknown settings and invalid values fail clearly. `test_size` is a fraction of groups, not rows. `data_kind` is a caller declaration, not an automatic authenticity detector.
 
 ```powershell
 python -m unittest discover -s tests -v
-python -m compileall -q src tests
+python -m compileall -q src tests scripts
 git diff --check
 ```
 
