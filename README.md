@@ -1,4 +1,27 @@
-# TeacherLens
+# TeacherLens · Student strategy MVP
+
+**Every student is different. Every student deserves a different strategy.**
+
+Milestone 4 is a local student-first mathematics workflow: checked diagnostic → collaborative strategy choices → editable plan → deliberate practice → fresh follow-up → reflection. Next.js, TypeScript and Tailwind provide five responsive views; FastAPI and SymPy check an original 24-problem bank. Unreliable research classifiers are never used as diagnostic ground truth.
+
+**Synthetic demo only.** Demo guidance is explicitly authored, not live AI. Actual checked answers, plans and attempts are stored locally. An optional local Ollama selector uses validated catalogue choices and topic aggregates; free text never goes to the model. Do not enter private student records. No production deployment or academic improvement is claimed.
+
+```powershell
+.venv\Scripts\Activate.ps1
+python -m pip install -r requirements/mvp.txt -e ".[mvp]"
+cd frontend
+npm ci
+cd ..
+python scripts/dev_mvp.py
+```
+
+Open **http://127.0.0.1:3000**. For first-time environment creation, optional local AI, browser tests and an optimized local build, see [MVP instructions](docs/student-mvp.md). Read [student architecture](docs/student-architecture.md) and [verification status](docs/student-mvp-verification.md).
+
+The complete Milestones 1–3 research workflow below remains available independently of the student app. Restricted Kaggle data is never required by the MVP.
+
+---
+
+## Research foundation (Milestones 1–3)
 
 An individual AI research project for detecting mathematical misconceptions in students' written solutions. The foundation supplies a reproducible TF-IDF + Logistic Regression baseline; research adds grouped evaluation, binary screening, hierarchical classification and local semantic retrieval. No frontend or hosted service is included.
 

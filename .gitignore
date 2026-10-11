@@ -21,3 +21,11 @@ outputs/
 *.npy
 reports/private/
 !tests/fixtures/synthetic.csv
+node_modules/
+.next/
+playwright-report/
+test-results/
+*.tsbuildinfo
+*.sqlite*
+*.log
+frontend/next-env.d.ts

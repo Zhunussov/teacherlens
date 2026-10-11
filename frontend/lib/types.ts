@@ -1,0 +1,12 @@
+export type Topic = 'linear'|'distribution'|'negative';
+export type View = 'dashboard'|'diagnostic'|'studio'|'strategy'|'progress';
+export type Problem = {id:string;topic:Topic;topic_name:string;equation:string;hint:string};
+export type Feedback = {correct:boolean;answer_status:string;verified_feedback:string;step_status:string;step_feedback:string;possible_explanation:string|null;reasoning_evidence:string;worked_step:string;solution:string;hint:string};
+export type Result = {problem_id:string;answer:string;step:string;feedback:Feedback;plan_revision?:number};
+export type Assessment = {id:string;kind:'diagnostic'|'retest';problem_ids:string[];problems:Problem[];results:Result[];complete:boolean};
+export type Counts = Record<Topic,{correct:number;total:number;step_errors:number}>;
+export type StrategyId = 'balance'|'expand'|'signed'|'check';
+export type Suggestion = {id:StrategyId;title:string;topic:Topic;steps:string[];benefit:string;tradeoff:string};
+export type Partner = {mode:'demo'|'ollama';fallback:string|null;message:string;question:string;strategies:Suggestion[];evidence:Counts;student_report:string;student_report_status:string};
+export type Plan = {strategy_id:StrategyId;goal:string;minutes:number;days:number;steps:string[];revision:number;problem_ids:string[];topics:Topic[];evidence:Counts};
+export type State = {data_kind:string;student_name:string;provider_mode:'demo'|'ollama';assessments:Assessment[];conversation:{student_text:string;assistant:Partner}[];plan:Plan|null;practice:Result[];practice_problems:Problem[];reflections:{text:string;helpful:string;next_action:string;plan_revision:number}[];progress:{before:Counts|null;after:Counts|null;interpretation:string}};
