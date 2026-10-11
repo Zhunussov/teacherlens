@@ -8,7 +8,8 @@ from fastapi import Depends, FastAPI, Header, HTTPException, Request
 from pydantic import BaseModel, ConfigDict, Field
 
 from .math_engine import BANK, TOPICS, assess, form, verify_bank
-from .partner import DemoProvider, OllamaProvider, STRATEGIES, recommendation
+from .partner import DemoProvider, OllamaProvider, STRATEGIES
+from .dialogue import Locale, StrategyDraft, context_for, converse
 from .store import Store
 
 
@@ -19,12 +20,13 @@ class Settings:
     provider_mode: str = 'demo'
     ollama_url: str = 'http://127.0.0.1:11434'
     ollama_model: str = ''
+    ollama_locales: str = 'en'
 
     @classmethod
     def environment(cls):
         return cls(os.getenv('TEACHERLENS_GATEWAY_KEY', ''), os.getenv('TEACHERLENS_DB', 'data/student-mvp/demo.sqlite'),
                    os.getenv('TEACHERLENS_PROVIDER', 'demo'), os.getenv('TEACHERLENS_OLLAMA_URL', 'http://127.0.0.1:11434'),
-                   os.getenv('TEACHERLENS_OLLAMA_MODEL', ''))
+                   os.getenv('TEACHERLENS_OLLAMA_MODEL', ''), os.getenv('TEACHERLENS_OLLAMA_LOCALES', 'en'))
 
 
 class Input(BaseModel):
@@ -44,14 +46,18 @@ class Answer(Input):
 class Conversation(Input):
     text: str = Field(min_length=1, max_length=600)
     obstacle: Literal['not_sure', 'operations', 'brackets', 'signs', 'checking', 'pace'] = 'not_sure'
+    locale: Locale = 'en'
+    problem_id: str | None = Field(default=None, max_length=40)
+    step: str = Field(default='', max_length=165)
 
 
-class PlanInput(Input):
-    strategy_id: Literal['balance', 'expand', 'signed', 'check']
-    goal: str = Field(min_length=5, max_length=200)
-    minutes: int = Field(ge=5, le=25, strict=True)
-    days: int = Field(ge=1, le=5, strict=True)
-    steps: list[str] = Field(min_length=1, max_length=5)
+class PlanInput(StrategyDraft):
+    approved: bool = Field(strict=True)
+    source_turn_id: str | None = Field(default=None, max_length=24)
+    uncertainty: str = Field(default='The cause is uncertain; test whether this method helps.', min_length=5, max_length=300)
+    rationale: str = Field(default='Make each equation change visible and independently check it.', min_length=5, max_length=300)
+    success_criteria: str = Field(default='On two fresh problems, check a step and substitute the final value.', min_length=5, max_length=300)
+    checkpoint: str = Field(default='Complete assigned practice, then the fresh follow-up and reflection.', min_length=5, max_length=300)
 
 
 class Reflection(Input):
@@ -90,7 +96,12 @@ def create_app(settings=None, provider=None):
         raise ValueError('Supported providers: demo or local ollama.')
     verify_bank()
     store = Store(settings.db_path)
-    provider = provider or (DemoProvider() if settings.provider_mode == 'demo' else OllamaProvider(settings.ollama_url, settings.ollama_model))
+    provider_mode, provider_notice = settings.provider_mode, None
+    if provider is None and provider_mode == 'ollama' and not settings.ollama_model:
+        provider_mode = 'demo'
+        provider_notice = 'No local model is configured. Authored demo mode is active; no live AI request is made.'
+    provider = provider or (DemoProvider() if provider_mode == 'demo' else OllamaProvider(
+        settings.ollama_url, settings.ollama_model, tuple(settings.ollama_locales.split(','))))
     app = FastAPI(title='TeacherLens local synthetic MVP', docs_url=None, redoc_url=None, openapi_url=None)
 
     @app.middleware('http')
@@ -129,7 +140,7 @@ def create_app(settings=None, provider=None):
     @app.get('/state')
     def state(key=Depends(token)):
         with store.session(key) as value:
-            return {**snapshot(value), 'provider_mode': settings.provider_mode}
+            return {**snapshot(value), 'provider_mode': provider_mode, 'provider_notice': provider_notice}
 
     @app.post('/assessment/start')
     def start(data: Start, key=Depends(token)):
@@ -163,12 +174,24 @@ def create_app(settings=None, provider=None):
             if value['provider_calls'] >= 8:
                 raise HTTPException(429, 'This demo has reached eight strategy turns. You can still edit your plan and practice.')
             value['provider_calls'] += 1
-            response = recommendation(evidence(diagnostic), data.obstacle, provider, settings.provider_mode)
-            value['conversation'].append({'student_text': data.text, 'assistant': response})
+            allowed = {r['problem_id'] for a in value['assessments'] for r in a['results']}
+            allowed.update(value['plan']['problem_ids'] if value['plan'] else [])
+            if data.problem_id and data.problem_id not in allowed:
+                raise HTTPException(422, 'Choose a problem from your recorded diagnostic or assigned practice.')
+            context = context_for(value, data.text, data.obstacle, data.locale, evidence(diagnostic), data.problem_id, data.step)
+            response = converse(context, data.obstacle, provider, provider_mode)
+            if provider_notice:
+                response['fallback'] = provider_notice
+            turn_id = secrets.token_hex(12)
+            response['proposal']['source_turn_id'] = turn_id
+            value['conversation'].append({'id': turn_id, 'student_text': data.text, 'problem_id': data.problem_id,
+                                          'step': data.step, 'locale': data.locale, 'assistant': response})
             return snapshot(value)
 
     @app.put('/plan')
     def plan(data: PlanInput, key=Depends(token)):
+        if not data.approved:
+            raise HTTPException(422, 'Review and approve the strategy before saving it.')
         if any(not step.strip() or len(step) > 200 for step in data.steps):
             raise HTTPException(422, 'Plan steps must contain 1–200 characters each.')
         with store.session(key, True) as value:
@@ -176,12 +199,19 @@ def create_app(settings=None, provider=None):
             if not diagnostic or not value['conversation']:
                 raise HTTPException(409, 'Discuss the completed diagnostic before choosing a plan.')
             stats = evidence(diagnostic)
+            source_turn = next((t for t in value['conversation'] if t.get('id') == data.source_turn_id), None) if data.source_turn_id else None
+            if data.source_turn_id and not source_turn:
+                raise HTTPException(422, 'The proposal is not part of this session. Choose a stored proposal or edit your plan.')
             weak = [topic for topic, counts in stats.items() if counts['correct'] < counts['total'] or counts['step_errors']] or list(TOPICS)
             targets = list(dict.fromkeys([STRATEGIES[data.strategy_id]['topic'], *weak]))
             old = value['plan']
             value['plan'] = {**data.model_dump(), 'revision': old['revision']+1 if old else 1,
                              'topics': targets, 'problem_ids': [f'{topic}-{i}' for topic in targets for i in (3, 4)],
-                             'evidence': stats, 'evidence_assessment_id': diagnostic['id']}
+                             'evidence': stats, 'supporting_evidence': [
+                                 {'kind': 'diagnostic', 'topic': STRATEGIES[data.strategy_id]['topic'],
+                                  **stats[STRATEGIES[data.strategy_id]['topic']]}] + (
+                                 [item for item in source_turn['assistant']['proposal']['evidence'] if item['kind'] != 'diagnostic'] if source_turn else []),
+                             'evidence_assessment_id': diagnostic['id']}
             return snapshot(value)
 
     @app.post('/practice/answer')

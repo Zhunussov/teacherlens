@@ -22,6 +22,7 @@ test('diagnostic → feedback → conversation → editable plan → practice �
   await expect(page.getByText('Guided demo response · no live AI',{exact:true})).toBeVisible();
   await page.getByRole('button',{name:'Try this strategy'}).first().click();
   await page.getByLabel('My goal').fill('Write each operation and check by substitution.');
+  await page.getByLabel('I have reviewed and approve this editable plan.').check();
   await page.getByRole('button',{name:'Save my plan'}).click();
   await expect(page.getByRole('heading',{name:'Put the plan into practice'})).toBeVisible();
   for(let i=0;i<6;i++){
@@ -44,6 +45,7 @@ test('diagnostic → feedback → conversation → editable plan → practice �
   await page.getByRole('button',{name:'Save reflection'}).click();
   await page.getByRole('button',{name:'Edit plan',exact:true}).click();
   await page.getByLabel('Minutes per session').fill('5');
+  await page.getByLabel('I have reviewed and approve this editable plan.').check();
   await page.getByRole('button',{name:'Save my plan'}).click();
   await expect(page.getByText('Revision 2',{exact:true})).toBeVisible();
   await page.reload();
@@ -92,4 +94,42 @@ test('gateway enforces origin, hides session capability and preserves work on ou
   await page.unroute('**/api/assessment/start');
   await page.getByRole('button',{name:'Start diagnostic',exact:true}).click();
   await expect(page.getByLabel('Your answer for x')).toBeVisible();
+});
+
+test('Studio checks the described transformation, remembers a correction and requires plan approval',async({page})=>{
+  await page.goto('/');
+  await expect(page.getByRole('button',{name:'Find my starting point'})).toBeVisible();
+  // Synthetic recorded evidence via the same browser gateway, then exercise the UI.
+  await page.evaluate(async()=>{
+    const post=async(path:string,body:unknown)=>{
+      const r=await fetch(`/api/${path}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+      if(!r.ok)throw new Error(`Synthetic setup failed: ${r.status}`);
+      return r.json();
+    };
+    const state=await post('assessment/start',{kind:'diagnostic'}),a=state.assessments[0];
+    for(const id of a.problem_ids)await post(`assessment/${a.id}/answer`,{problem_id:id,answer:'0'});
+  });
+  await page.reload();
+  await page.getByRole('navigation',{name:'Learning sections',exact:true}).getByRole('button',{name:'Strategy Studio'}).click();
+  await page.getByLabel('What did you notice?').fill('Equation was x+5=12, so I moved +5 to the right and got x=17, but it was wrong.');
+  await page.getByRole('button',{name:'Explore my options'}).click();
+  await expect(page.getByText('The entered step x=17 does not preserve',{exact:false})).toBeVisible();
+  await expect(page.getByText('To undo adding 5, subtract 5 on both sides.',{exact:false})).toBeVisible();
+  const first=page.locator('.bubble.partner').last();
+  await expect(first).not.toContainText('0/2');
+  await expect(first).not.toContainText('x=7');
+  await page.getByLabel('What did you notice?').fill('x+5-5=12-5');
+  await page.getByRole('button',{name:'Explore my options'}).click();
+  await expect(page.getByText('The entered step x+5-5=12-5 preserves',{exact:false})).toBeVisible();
+  await expect(page.getByText('That entered change checks out.',{exact:false})).toBeVisible();
+  expect((await new AxeBuilder({page}).withTags(['wcag2a','wcag2aa','wcag21aa']).analyze()).violations).toEqual([]);
+  await page.screenshot({path:'../outputs/studio-context.png',fullPage:true});
+  await page.getByRole('button',{name:'Try this strategy'}).first().click();
+  await expect(page.getByRole('button',{name:'Save my plan'})).toBeDisabled();
+  await page.getByLabel('Observable success criteria').fill('Verify an equivalent step on two fresh equations.');
+  await page.getByLabel('Current uncertainty').fill('I want to test whether writing both sides helps.');
+  expect((await new AxeBuilder({page}).withTags(['wcag2a','wcag2aa','wcag21aa']).analyze()).violations).toEqual([]);
+  await page.getByLabel('I have reviewed and approve this editable plan.').check();
+  await page.getByRole('button',{name:'Save my plan'}).click();
+  await expect(page.getByText('Verify an equivalent step on two fresh equations.',{exact:false})).toBeVisible();
 });

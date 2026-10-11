@@ -4,7 +4,7 @@
 
 Milestone 4 is a local student-first mathematics workflow: checked diagnostic → collaborative strategy choices → editable plan → deliberate practice → fresh follow-up → reflection. Next.js, TypeScript and Tailwind provide five responsive views; FastAPI and SymPy check an original 24-problem bank. Unreliable research classifiers are never used as diagnostic ground truth.
 
-**Synthetic demo only.** Demo guidance is explicitly authored, not live AI. Actual checked answers, plans and attempts are stored locally. An optional local Ollama selector uses validated catalogue choices and topic aggregates; free text never goes to the model. Do not enter private student records. No production deployment or academic improvement is claimed.
+**Synthetic demo only.** Demo guidance is explicitly authored, not live AI. Actual checked answers, plans and attempts are stored locally. An optional local Ollama adapter generates contextual dialogue and editable proposals from a bounded message/history/evidence summary. Verified algebra checks remain separate. Do not enter private student records. No production deployment or academic improvement is claimed.
 
 ```powershell
 .venv\Scripts\Activate.ps1
@@ -113,3 +113,7 @@ git diff --check
 ```
 
 Read [architecture](docs/architecture.md), [dataset research](docs/research.md), and [evaluation status](docs/results.md) for decisions, limitations and next steps. This baseline has not been validated for classroom diagnosis or multilingual use.
+
+### Context-aware Strategy Studio
+
+The Studio now uses bounded multi-turn context and deterministic algebra checks. The local Ollama adapter can generate contextual prose and structured editable proposals; without a configured model, authored demo rules remain clearly labeled. Plans require explicit review and approval. See [conversation architecture, configuration and limitations](docs/context-aware-studio.md).

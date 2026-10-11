@@ -1,4 +1,4 @@
-"""A bounded provider selects authored prompts, never diagnoses or grades."""
+"""Local provider transport for legacy selection and validated contextual dialogue."""
 import json
 from typing import Literal, Protocol
 from urllib.parse import urlparse
@@ -52,25 +52,32 @@ class DemoProvider:
 
 
 class OllamaProvider:
-    """Local-only model endpoint. No raw answers, free text, IDs or records sent."""
-    def __init__(self, url, model):
+    """Local-only endpoint; contextual payloads are minimized by dialogue.py."""
+    def __init__(self, url, model, locales=('en',)):
         parsed = urlparse(url)
-        if parsed.scheme != 'http' or parsed.hostname not in ('127.0.0.1', 'localhost') or parsed.username or parsed.query:
+        if (parsed.scheme != 'http' or parsed.hostname not in ('127.0.0.1', 'localhost')
+                or parsed.username is not None or parsed.password is not None or parsed.query or parsed.fragment):
             raise ValueError('Ollama must be an explicitly configured local HTTP endpoint.')
         if not model or len(model) > 80 or 'cloud' in model.lower():
             raise ValueError('Configure a local model name (max 80 characters).')
-        self.url, self.model = url.rstrip('/'), model
+        if not locales or not set(locales) <= {'en', 'ru', 'kk'}:
+            raise ValueError('Supported locale codes are en, ru and kk.')
+        self.url, self.model, self.locales = url.rstrip('/'), model, tuple(locales)
 
-    def choose(self, evidence, obstacle):
-        prompt = {'topic_counts': evidence, 'student_selected_obstacle': obstacle,
-                  'task': 'Select a clarification question and 2-3 distinct practice strategies. Reference only supplied topics. Do not infer psychology or mastery.',
-                  'strategy_catalogue': STRATEGIES, 'question_catalogue': QUESTIONS}
+    def respond(self, context):
+        from .dialogue import DialogueChoice, SYSTEM_PROMPT
+        if context['locale'] not in self.locales:
+            raise ValueError('The configured local model does not support this requested locale.')
+        return DialogueChoice.model_validate_json(self.request(DialogueChoice, [
+            {'role': 'system', 'content': SYSTEM_PROMPT},
+            {'role': 'user', 'content': json.dumps(context, ensure_ascii=False)}], 900))
+
+    def request(self, schema, messages, tokens):
         with httpx.Client(timeout=12, trust_env=False) as client:
             with client.stream('POST', self.url + '/api/chat', json={
-                'model': self.model, 'stream': False, 'format': Choice.model_json_schema(),
-                'messages': [{'role': 'system', 'content': 'Return only the required JSON schema. You select suggestions, never mathematical diagnoses.'},
-                             {'role': 'user', 'content': json.dumps(prompt)}],
-                'options': {'temperature': 0, 'num_predict': 400, 'num_ctx': 4096}}) as response:
+                'model': self.model, 'stream': False, 'format': schema.model_json_schema(),
+                'messages': messages,
+                'options': {'temperature': 0, 'num_predict': tokens, 'num_ctx': 8192}}) as response:
                 response.raise_for_status()
                 content = b''
                 for chunk in response.iter_bytes():
@@ -78,7 +85,15 @@ class OllamaProvider:
                     if len(content) > 32768:
                         raise ValueError('Provider response exceeds limit.')
         data = json.loads(content)
-        return Choice.model_validate_json(data['message']['content'])
+        return data['message']['content']
+
+    def choose(self, evidence, obstacle):
+        prompt = {'topic_counts': evidence, 'student_selected_obstacle': obstacle,
+                  'task': 'Select a clarification question and 2-3 distinct practice strategies. Reference only supplied topics. Do not infer psychology or mastery.',
+                  'strategy_catalogue': STRATEGIES, 'question_catalogue': QUESTIONS}
+        return Choice.model_validate_json(self.request(Choice, [
+            {'role': 'system', 'content': 'Return only the required JSON schema. You select suggestions, never mathematical diagnoses.'},
+            {'role': 'user', 'content': json.dumps(prompt)}], 400))
 
 
 def recommendation(evidence, obstacle, provider, mode):

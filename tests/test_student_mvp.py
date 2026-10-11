@@ -60,6 +60,8 @@ class WorkflowTests(unittest.TestCase):
         self.headers={**self.gateway,'Authorization':'Bearer '+token}
 
     def send(self,path,body=None,method='POST',expected=200,headers=None):
+        if path=='/plan' and body is not None:
+            body={**body,'approved':True}
         response=self.client.request(method,path,json=body,headers=headers or self.headers)
         self.assertEqual(response.status_code,expected,response.text)
         return response.json()
@@ -120,19 +122,20 @@ class WorkflowTests(unittest.TestCase):
         self.send('/conversation',{'text':'x'*601},expected=422)
         self.send('/conversation',{'text':'x'*5000},expected=413)
 
-    def test_student_text_not_sent_to_provider_and_invalid_output_falls_back(self):
+    def test_demo_does_not_call_live_provider_and_invalid_live_output_falls_back(self):
         self.diagnostic()
         provider=DemoProvider()
         with patch.object(provider,'choose',wraps=provider.choose) as call, TestClient(create_app(self.settings,provider)) as client:
-            state=client.post('/conversation',headers=self.headers,json={'text':'PRIVATE_SYNTHETIC_SENTINEL','obstacle':'signs'}).json()
-            self.assertNotIn('PRIVATE_SYNTHETIC_SENTINEL',json.dumps(call.call_args.args))
+            state=client.post('/conversation',headers=self.headers,json={'text':'Synthetic reflection','obstacle':'signs'}).json()
+            call.assert_not_called()
             self.assertEqual(state['conversation'][-1]['assistant']['mode'],'demo')
         class InvalidProvider:
-            def choose(self,*args):raise ValueError('invalid JSON, synthetic secret not for browser')
-        with TestClient(create_app(self.settings,InvalidProvider())) as client:
+            def respond(self,*args):raise ValueError('invalid JSON, synthetic secret not for browser')
+        live=Settings(self.settings.gateway_key,self.settings.db_path,provider_mode='ollama')
+        with TestClient(create_app(live,InvalidProvider())) as client:
             response=client.post('/conversation',headers=self.headers,json={'text':'Try a strategy'}).json()['conversation'][-1]['assistant']
             self.assertEqual(response['mode'],'demo')
-            self.assertIn('invalid output',response['fallback'])
+            self.assertIn('failed validation',response['fallback'])
             self.assertNotIn('synthetic secret',json.dumps(response))
 
     def test_verified_bad_step_is_targeted_even_with_correct_final_answer(self):

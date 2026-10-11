@@ -16,9 +16,11 @@ The Milestones 1–3 research, results, scripts and classifiers are preserved. T
 
 ### What is demo or limited
 
-The default **guided demo is authored rule-based guidance, not a live AI conversation**. Diagnostic checks, stored evidence, plan editing, practice and progress are functional. Nothing uses simulated scores. Synthetic browser tests deliberately produce before/after scores to exercise the software; these are not measured learning outcomes.
+The default **guided demo is authored rule-based guidance, not a live AI conversation**. The contextual Studio extension is documented in [context-aware conversation](context-aware-studio.md). Diagnostic checks, stored evidence, plan editing, practice and progress are functional. Nothing uses simulated scores. Synthetic browser tests deliberately produce before/after scores to exercise the software; these are not measured learning outcomes.
 
-An optional local Ollama model selects a clarification question and two or three strategies from a fixed catalogue. Server-side validation and authored rendering prevent it from inventing diagnoses, arithmetic claims, psychological labels, mastery claims or arbitrary learning plans. This is deliberately narrower than open-ended generated dialogue. Free-form student text and reflections remain local; the model receives only topic-level counts and a predefined uncertainty choice. It is not pretending to interpret free text it never receives.
+An optional local Ollama model now generates contextual conversational prose and a structured strategy proposal using the current message, up to four recent turns, relevant checked mathematics, student-confirmed difficulty choices and a bounded current-plan summary. Deterministic checking remains separate. No full session, student name or hidden solution key is sent. Obvious contact patterns are masked, but arbitrary prose is not guaranteed anonymous. Synthetic testing only; do not enter private student records.
+
+The model cannot grade, modify the bank, call tools or save a plan. Output schema, lengths, locale, strategy catalogue, schedule and question count are validated. Numerical equations and selected unsupported diagnostic claims in generated prose are rejected. These checks are not a semantic proof that all prose is correct. Suggestions are labeled for student review, with verified facts rendered separately. A student edits and explicitly approves the goal, uncertainty, rationale, checklist, schedule, success criteria and checkpoint before saving.
 
 No local model is installed automatically, and the live provider has not been educationally validated. Its HTTP contract is tested with synthetic mocked responses; an unavailable or invalid model response explicitly falls back to demo guidance. Hosted providers, paid APIs and credential entry are absent. The provider boundary can support future reviewed adapters, but no remote provider is enabled.
 
@@ -66,7 +68,7 @@ python scripts/dev_mvp.py
 
 The configured provider label does not assert that inference succeeded. Every actual turn records `demo` or `ollama`, including fallback notices. Local-only URL checks reject remote hosts, embedded credentials and cloud-named models. A trusted local service remains the operator's responsibility. Defaults are demo; absence of a model never masquerades as live AI.
 
-Generation is bounded to 400 output tokens, a 4,096-token context, a 12-second HTTP timeout, a 32 KB response and eight strategy turns per session (including demo/fallback turns). Student text is capped at 600 characters, request bodies at 4 KB, plans at five short steps, and sessions at 40 successful changes/minute. No automatic retry or model download spends resources. The client displays errors and preserves previously committed work.
+Generation is bounded to 900 output tokens, an 8,192-token context, a 12-second HTTP timeout, a 32 KB response and eight strategy turns per session (including demo/fallback turns). Student text is capped at 600 characters, request bodies at 4 KB, plans at five short steps, and sessions at 40 successful changes/minute. No automatic retry or model download spends resources. The client displays errors and preserves previously committed work.
 
 ## Curriculum and verification
 
