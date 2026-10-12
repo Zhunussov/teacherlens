@@ -163,7 +163,10 @@ def create_app(settings=None, provider=None):
     def provider_metadata():
         return {'provider_mode': provider_mode, 'provider_notice': provider_notice,
                 'provider_status': cloud.health() if cloud else {'selected': settings.provider_mode,
-                    'ready': provider_mode != 'demo', 'check_kind': 'configuration_only'}}
+                    'ready': provider_mode != 'demo', 'check_kind': 'configuration_only',
+                    'status': 'demo_selected' if provider_mode == 'demo' else 'local_configured',
+                    'reason': 'Effective backend configuration selects demo. Changing .env requires restarting the launcher; process environment overrides the file.' if settings.provider_mode == 'demo' else provider_notice,
+                    'token_present': bool(settings.hf_token), 'free_tier_confirmed': settings.hf_free_tier_confirmed}}
 
     @app.get('/provider/health')
     def provider_health(key=Depends(token)):

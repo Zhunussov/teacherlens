@@ -42,7 +42,8 @@ class Budget:
             result, pause, blocked = db.execute('SELECT result, pause, blocked_month FROM status WHERE id=1').fetchone()
         return {'daily_limit': self.daily, 'daily_remaining': max(0, self.daily-counts.get(day, 0)),
                 'monthly_limit': self.monthly, 'monthly_remaining': max(0, self.monthly-counts.get(month, 0)),
-                'last_result': result, 'paused': pause > time.time() or blocked == month}
+                'last_result': result, 'paused': pause > time.time() or blocked == month,
+                'credits_exhausted': blocked == month}
 
     def reserve(self):
         day, month = self.periods()
@@ -102,14 +103,34 @@ def strict_schema():
 class HuggingFaceProvider:
     def __init__(self, token, model, confirmed, budget):
         self._token, self.budget = token, budget
-        self.reason = ('Set HF_TOKEN locally with Inference Providers permission.' if not re.fullmatch(r'hf_[A-Za-z0-9_]{8,}', token or '') else
-                       'Only the verified Qwen/Nscale route is supported; check HF_MODEL.' if model not in (MODEL, ROUTE) else
-                       'Confirm a free account without purchased credits, subscriptions or custom provider keys using HF_FREE_TIER_CONFIRMED=true.' if not confirmed else None)
+        self.token_present, self.confirmed = bool(token), confirmed
+        self.blocking_reasons = []
+        if not token:
+            self.blocking_reasons.append('missing_token')
+        elif not re.fullmatch(r'hf_[A-Za-z0-9_]{8,}', token):
+            self.blocking_reasons.append('invalid_token')
+        if model not in (MODEL, ROUTE): self.blocking_reasons.append('unsupported_model')
+        if not confirmed: self.blocking_reasons.append('missing_free_tier_confirmation')
+        messages = {
+            'missing_token': 'Set HF_TOKEN locally with Inference Providers permission.',
+            'invalid_token': 'HF_TOKEN is present but its format is invalid; correct it locally.',
+            'unsupported_model': 'Only the verified Qwen/Nscale route is supported; check HF_MODEL.',
+            'missing_free_tier_confirmation': 'Confirm a free account without purchased credits, subscriptions or custom provider keys using HF_FREE_TIER_CONFIRMED=true.'}
+        self.reason = messages[self.blocking_reasons[0]] if self.blocking_reasons else None
         self.ready = self.reason is None
 
     def health(self):
+        budget = self.budget.health()
+        status = (self.blocking_reasons[0] if self.blocking_reasons else
+                  'credits_exhausted' if budget['credits_exhausted'] else
+                  'application_quota_exhausted' if not budget['daily_remaining'] or not budget['monthly_remaining'] else
+                  budget['last_result'] if budget['paused'] and budget['last_result'] in ('rate_limited', 'credentials') else
+                  'provider_paused' if budget['paused'] else
+                  'provider_unavailable' if budget['last_result'] in ('invalid_response', 'unavailable') else 'huggingface_ready')
         return {'selected': 'huggingface', 'ready': self.ready, 'reason': self.reason,
-                'model': MODEL, 'route': ROUTE, 'check_kind': 'configuration_only', **self.budget.health()}
+                'status': status, 'blocking_reasons': self.blocking_reasons,
+                'token_present': self.token_present, 'free_tier_confirmed': self.confirmed,
+                'model': MODEL, 'route': ROUTE, 'check_kind': 'configuration_only', **budget}
 
     def respond(self, context):
         if not self.ready:

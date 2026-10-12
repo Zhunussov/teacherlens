@@ -26,7 +26,7 @@ test('cloud configuration is transparent and each fictional context needs consen
   // route.fetch below cannot transmit to an external provider.
   await page.route('**/api/state',async route=>{
     const response=await route.fetch(),state=await response.json();
-    await route.fulfill({json:{...state,provider_mode:'huggingface',provider_status:{selected:'huggingface',ready:true,check_kind:'configuration_only',model:'Qwen/Qwen3-4B-Instruct-2507',daily_remaining:5,monthly_remaining:50,last_result:'not_tested'}}});
+    await route.fulfill({json:{...state,provider_mode:'huggingface',provider_status:{selected:'huggingface',ready:true,status:'huggingface_ready',token_present:true,free_tier_confirmed:true,check_kind:'configuration_only',model:'Qwen/Qwen3-4B-Instruct-2507',daily_remaining:5,monthly_remaining:50,last_result:'not_tested'}}});
   });
   let confirmed=false;
   await page.route('**/api/conversation',async route=>{
@@ -118,6 +118,13 @@ test('mobile navigation and layout stay usable',async({page})=>{
   await page.screenshot({path:'../outputs/student-dashboard-mobile.png',fullPage:true});
   await page.getByRole('navigation',{name:'Mobile learning sections'}).getByRole('button',{name:'Studio',exact:true}).click();
   await expect(page.getByRole('heading',{name:'First, something real to work with'})).toBeVisible();
+  await expect(page.getByRole('button',{name:'Take the diagnostic'})).toBeVisible();
+  await page.getByText('AI configuration and application limits',{exact:true}).click();
+  const configurationResponse=page.waitForResponse(response=>response.url().endsWith('/api/provider/health')&&response.request().method()==='GET');
+  await page.getByRole('button',{name:'Check AI configuration'}).click();
+  expect((await configurationResponse).status()).toBe(200);
+  await expect(page.getByText('Status: Demo selected in backend configuration',{exact:true})).toBeVisible();
+  await expect(page.getByText('Backend token present: no. Free-tier account confirmed: no.',{exact:true})).toBeVisible();
   await expect(page.getByRole('button',{name:'Take the diagnostic'})).toBeVisible();
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBeTruthy();
 });

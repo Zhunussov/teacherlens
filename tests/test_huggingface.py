@@ -131,6 +131,28 @@ class CloudTests(unittest.TestCase):
                 self.assertEqual(result['mode'], 'demo'); self.assertTrue(result['fallback'])
         self.assertEqual(self.budget.health()['daily_remaining'], 5)
 
+    def test_health_lists_all_configuration_blockers_without_secret_values(self):
+        provider = HuggingFaceProvider('', MODEL, False, self.budget)
+        health = provider.health()
+        self.assertEqual(health['status'], 'missing_token')
+        self.assertEqual(health['blocking_reasons'], ['missing_token', 'missing_free_tier_confirmation'])
+        self.assertFalse(health['token_present']); self.assertFalse(health['free_tier_confirmed'])
+        configured = self.provider.health()
+        self.assertEqual(configured['status'], 'huggingface_ready')
+        self.assertTrue(configured['token_present']); self.assertTrue(configured['free_tier_confirmed'])
+        self.assertNotIn(TOKEN, json.dumps(configured))
+
+    def test_health_distinguishes_application_quota_and_provider_failures(self):
+        self.provider.budget = Budget(Path(self.temp.name)/'disabled.sqlite', daily=0)
+        self.assertEqual(self.provider.health()['status'], 'application_quota_exhausted')
+        self.provider.budget = self.budget
+        self.budget.record('unavailable')
+        self.assertEqual(self.provider.health()['status'], 'provider_unavailable')
+        self.budget.record('rate_limited')
+        self.assertEqual(self.provider.health()['status'], 'rate_limited')
+        self.budget.record('credits_exhausted')
+        self.assertEqual(self.provider.health()['status'], 'credits_exhausted')
+
     def test_daily_budget_persists_across_provider_instances(self):
         self.budget = Budget(Path(self.temp.name)/'one.sqlite', daily=1)
         self.provider = HuggingFaceProvider(TOKEN, MODEL, True, self.budget)
@@ -273,6 +295,23 @@ class CloudApiTests(unittest.TestCase):
 
 
 class ConfigurationTests(unittest.TestCase):
+    def test_launcher_configuration_reports_process_precedence_without_secrets(self):
+        root = Path(__file__).resolve().parents[1]
+        spec = importlib.util.spec_from_file_location('dev_mvp', root/'scripts/dev_mvp.py')
+        module = importlib.util.module_from_spec(spec); spec.loader.exec_module(module)
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp)/'.env'
+            path.write_text('AI_PROVIDER=huggingface\nHF_FREE_TIER_CONFIRMED=false\nHF_TOKEN=\n', encoding='utf-8')
+            process_env = {'AI_PROVIDER': 'demo', 'HF_TOKEN': TOKEN}
+            merged = module.load_local_environment(process_env.copy(), path)
+            result = module.configuration_summary(merged, process_env)
+            self.assertEqual(result['selected'], 'demo'); self.assertTrue(result['token_present'])
+            self.assertFalse(result['free_tier_confirmed'])
+            self.assertEqual(result['process_override_keys'], ['AI_PROVIDER', 'HF_TOKEN'])
+            self.assertNotIn(TOKEN, json.dumps(result))
+            self.assertEqual(module.configuration_summary(module.load_local_environment({}, path), {})['blocking_reasons'],
+                             ['missing_token', 'missing_free_tier_confirmation'])
+
     def test_env_example_is_safe_and_launcher_keeps_token_out_of_next_process(self):
         root = Path(__file__).resolve().parents[1]
         spec = importlib.util.spec_from_file_location('dev_mvp', root/'scripts/dev_mvp.py')
