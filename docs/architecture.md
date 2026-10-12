@@ -66,3 +66,7 @@ Global positive masks remain distinct from per-question masks. Pooled screening 
 ## Milestone 4 product pivot
 
 The student workflow is implemented separately from these preserved research modules. Its math checks use an original curated bank and deterministic exact arithmetic, never MAP classifier predictions. See [student architecture](student-architecture.md), [functional MVP specification](student-mvp.md), and [verification](student-mvp-verification.md). The earlier discussion of no frontend applies to the research foundation; the new Next.js/FastAPI application is a local synthetic MVP.
+
+## Optional cloud strategy dialogue
+
+The bounded dialogue interface now also supports Hugging Face's OpenAI-compatible router with a fixed Qwen/Nscale route. Exact math verification, server-owned evidence and student-approved plans remain independent of generated prose. Cloud context is shortened to two recent turns and requires per-message fictional-context confirmation. A separate ignored SQLite budget persists application-wide daily/monthly limits without competing with the existing session transaction. Health checks return only local readiness/counters, never credentials or an account-credit claim. Server credentials are removed from the frontend process environment. See [cloud architecture, account restrictions, setup and verification](huggingface-ai.md). Earlier research artifacts and methods are unchanged.

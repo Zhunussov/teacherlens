@@ -1,6 +1,59 @@
 import {test,expect} from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 
+test('cloud configuration is transparent and each fictional context needs consent (mocked inference)',async({page})=>{
+  await page.goto('/');
+  await expect(page.getByRole('button',{name:'Find my starting point'})).toBeVisible();
+  await page.evaluate(async()=>{
+    const post=async(path:string,body:unknown)=>{
+      const response=await fetch(`/api/${path}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+      if(!response.ok)throw new Error('Fictional setup failed');
+      return response.json();
+    };
+    const state=await post('assessment/start',{kind:'diagnostic'}),a=state.assessments[0];
+    for(const id of a.problem_ids)await post(`assessment/${a.id}/answer`,{problem_id:id,answer:'0'});
+  });
+  await page.reload();
+  await page.getByRole('navigation',{name:'Learning sections',exact:true}).getByRole('button',{name:'Strategy Studio'}).click();
+  await page.getByText('AI configuration and application limits',{exact:true}).click();
+  const configurationResponse=page.waitForResponse(response=>response.url().endsWith('/api/provider/health')&&response.request().method()==='GET');
+  await page.getByRole('button',{name:'Check AI configuration'}).click();
+  expect((await configurationResponse).status()).toBe(200);
+  await expect(page.getByRole('heading',{name:'A conversation with evidence'})).toBeVisible();
+  await expect(page.getByText('Guided demo · no live AI',{exact:true})).toBeVisible();
+  await expect(page.locator('main [role="alert"]')).toHaveCount(0);
+  // Only UI provider metadata/output is mocked. The test server is forced to demo;
+  // route.fetch below cannot transmit to an external provider.
+  await page.route('**/api/state',async route=>{
+    const response=await route.fetch(),state=await response.json();
+    await route.fulfill({json:{...state,provider_mode:'huggingface',provider_status:{selected:'huggingface',ready:true,check_kind:'configuration_only',model:'Qwen/Qwen3-4B-Instruct-2507',daily_remaining:5,monthly_remaining:50,last_result:'not_tested'}}});
+  });
+  let confirmed=false;
+  await page.route('**/api/conversation',async route=>{
+    confirmed=route.request().postDataJSON().external_ai_consent===true;
+    const response=await route.fetch(),state=await response.json();
+    const last=state.conversation.at(-1).assistant;
+    last.mode='huggingface';last.message='Mocked cloud response: write the inverse operation on both sides.';
+    await route.fulfill({json:{...state,provider_mode:'huggingface'}});
+  });
+  await page.reload();
+  await page.getByRole('navigation',{name:'Learning sections',exact:true}).getByRole('button',{name:'Strategy Studio'}).click();
+  await expect(page.getByText('Hugging Face configured',{exact:true})).toBeVisible();
+  await page.getByText('AI configuration and application limits',{exact:true}).click();
+  await expect(page.getByText('Application requests remaining: 5 today; 50 this UTC month.')).toBeVisible();
+  await expect(page.getByText('This check reads local configuration only.',{exact:false})).toBeVisible();
+  await page.getByLabel('What did you notice?').fill('Equation was x+5=12, then x=17.');
+  await expect(page.getByRole('button',{name:'Explore my options'})).toBeDisabled();
+  await page.getByLabel('This message, recent conversation and plan contain fictional data only.',{exact:false}).check();
+  await page.getByRole('button',{name:'Explore my options'}).click();
+  await expect(page.getByText('Hugging Face-generated conversation',{exact:true})).toBeVisible();
+  await expect(page.getByText('Only the separate mathematical check is verified.',{exact:false})).toBeVisible();
+  await expect(page.getByText('The entered step x=17 does not preserve',{exact:false})).toBeVisible();
+  expect(confirmed).toBeTruthy();
+  await expect(page.getByLabel('This message, recent conversation and plan contain fictional data only.',{exact:false})).not.toBeChecked();
+  expect((await new AxeBuilder({page}).withTags(['wcag2a','wcag2aa','wcag21aa']).analyze()).violations).toEqual([]);
+});
+
 test('diagnostic → feedback → conversation → editable plan → practice → retest → reflection',async({page})=>{
   const errors:string[]=[];page.on('pageerror',error=>errors.push(error.message));
   await page.goto('/');

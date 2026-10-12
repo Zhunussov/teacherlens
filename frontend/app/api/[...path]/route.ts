@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 export const runtime = 'nodejs';
 const cookieName = 'teacherlens_demo';
 const routes: Record<string, RegExp> = {
-  GET: /^state$/,
+  GET: /^(state|provider\/health)$/,
   POST: /^(session|assessment\/start|assessment\/[a-f0-9]{24}\/answer|conversation|practice\/answer|reflection)$/,
   PUT: /^plan$/,
   DELETE: /^session$/,

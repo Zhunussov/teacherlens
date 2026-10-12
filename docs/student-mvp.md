@@ -22,7 +22,7 @@ An optional local Ollama model now generates contextual conversational prose and
 
 The model cannot grade, modify the bank, call tools or save a plan. Output schema, lengths, locale, strategy catalogue, schedule and question count are validated. Numerical equations and selected unsupported diagnostic claims in generated prose are rejected. These checks are not a semantic proof that all prose is correct. Suggestions are labeled for student review, with verified facts rendered separately. A student edits and explicitly approves the goal, uncertainty, rationale, checklist, schedule, success criteria and checkpoint before saving.
 
-No local model is installed automatically, and the live provider has not been educationally validated. Its HTTP contract is tested with synthetic mocked responses; an unavailable or invalid model response explicitly falls back to demo guidance. Hosted providers, paid APIs and credential entry are absent. The provider boundary can support future reviewed adapters, but no remote provider is enabled.
+No local model is installed automatically, and live providers have not been educationally validated. Their HTTP contracts are tested with synthetic mocked responses; an unavailable or invalid model response explicitly falls back to demo guidance. An optional Hugging Face adapter now supports cloud generation without model downloads, with free-account setup, server-only credentials, application quotas and per-message fictional-context confirmation. See [PowerShell cloud setup and restrictions](huggingface-ai.md). It is disabled by default; no paid subscription or billing activation is implemented.
 
 This is a **local synthetic demo**, not a school deployment. Do not enter private student records. There are no real accounts, parental consent workflow, school tenancy, account recovery, encrypted storage or production authentication. A seven-day opaque session capability isolates browser sessions; it is not a verified student identity. The interface labels the limitation throughout.
 
@@ -66,7 +66,7 @@ $env:TEACHERLENS_OLLAMA_URL = 'http://127.0.0.1:11434'
 python scripts/dev_mvp.py
 ```
 
-The configured provider label does not assert that inference succeeded. Every actual turn records `demo` or `ollama`, including fallback notices. Local-only URL checks reject remote hosts, embedded credentials and cloud-named models. A trusted local service remains the operator's responsibility. Defaults are demo; absence of a model never masquerades as live AI.
+The configured provider label does not assert that inference succeeded. Every actual turn records `demo`, `ollama` or `huggingface`, including fallback notices. Ollama's local-only URL checks reject remote hosts, embedded credentials and cloud-named models; the separate cloud adapter pins one verified HF route. A trusted local service and the cloud free-account prerequisites remain the operator's responsibility. Defaults are demo; missing credentials or an absent local model never masquerade as live AI.
 
 Generation is bounded to 900 output tokens, an 8,192-token context, a 12-second HTTP timeout, a 32 KB response and eight strategy turns per session (including demo/fallback turns). Student text is capped at 600 characters, request bodies at 4 KB, plans at five short steps, and sessions at 40 successful changes/minute. No automatic retry or model download spends resources. The client displays errors and preserves previously committed work.
 

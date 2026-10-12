@@ -9,8 +9,8 @@ flowchart LR
     C --> D[Local SQLite demo records]
     C --> E[Bounded parser and SymPy checks]
     C --> F[Evidence aggregates]
-    F --> G[Demo or local LLM selector]
-    G --> H[Validated authored guidance]
+    F --> G[Demo, optional local or opted-in cloud provider]
+    G --> H[Validated prose and editable proposal]
     H --> C
 ```
 
@@ -22,6 +22,7 @@ flowchart LR
 - `student/math_engine.py`: the original verified 24-problem bank, bounded non-evaluating AST parser and exact checks. The AI provider cannot grade or modify this bank.
 - `student/store.py`: SQLite, token hashes, seven-day expiry, atomic mutation transactions and session deletion. Raw synthetic answers/reflections stay in ignored local storage. It closes connections explicitly, including on errors.
 - `student/partner.py`: shared local Ollama transport and retained legacy catalogue selector. `student/dialogue.py` assembles minimized multi-turn context, checks equation transformations, generates authored contextual demo replies, validates local-model prose and structured proposals, and handles labeled fallback. Only the current message, four recent turns, relevant checked evidence and a limited plan summary reach the configured local model.
+- `student/huggingface.py`: optional pinned Qwen/Nscale routing, shortened two-turn cloud context, strict output schema and persistent atomic application budgets. Missing credentials or account confirmation leaves demo active. Each cloud turn requires fictional-context approval; the adapter makes no billing calls. See [account restrictions and setup](huggingface-ai.md).
 - `scripts/dev_mvp.py`: reproducible loopback startup for both runtimes, ephemeral internal secret, isolated browser-test storage and process cleanup.
 
 Framework choices follow the official [Next.js route/cookie APIs](https://nextjs.org/docs/app/api-reference/functions/cookies), [FastAPI testing interface](https://fastapi.tiangolo.com/tutorial/testing/), [Tailwind PostCSS integration](https://tailwindcss.com/docs/installation/using-postcss) and [Ollama structured-output contract](https://docs.ollama.com/capabilities/structured-outputs). Direct runtime dependencies are pinned; the frontend lockfile fixes transitive packages. Python optional extras keep research-only installations lightweight.
@@ -38,10 +39,10 @@ There is one follow-up per session. Plan revisions after reflection are stored, 
 
 The MVP uses a single local SQLite store and serializes mutation transactions, including a bounded provider request. That favors atomic history and avoids double submissions, but a slow local model can delay other writes. This is acceptable for synthetic single-user evaluation; a multi-user system needs reservation/version checks, async work and stronger infrastructure. Limiting successful changes is not a full abuse-resistant public rate limiter. Session creation has a small local capacity cap; no production edge protection is claimed.
 
-Sessions isolate records, but do not provide account recovery, authorization roles, encryption at rest, secure erasure or controls appropriate for minors' real records. Loopback, no hosted inference, no telemetry in the launcher, ignored local storage and explicit synthetic labeling minimize scope rather than claim compliance. HTTPS cookies become Secure when served over HTTPS; this does not make deployment approved. The local content-security policy blocks framing and external browser connections but permits Next's inline bootstrap/style requirements; further CSP hardening and independent security review are deployment prerequisites.
+Sessions isolate records, but do not provide account recovery, authorization roles, encryption at rest, secure erasure or controls appropriate for minors' real records. Loopback servers, no telemetry in the launcher, ignored local storage and explicit fictional labeling minimize scope rather than claim compliance. Optional cloud inference transmits minimized fictional context only after explicit approval. HTTPS cookies become Secure when served over HTTPS; this does not make deployment approved. The local content-security policy blocks framing and external browser connections but permits Next's inline bootstrap/style requirements; further CSP hardening and independent security review are deployment prerequisites.
 
 Local models can generate bounded tutoring prose and editable structured proposals. Mathematical verdicts remain server-owned. Numerical formulas and selected unsupported claims in prose are rejected, but schema validation cannot establish semantic correctness. Student review and explicit approval are required; proposals cannot automatically become saved plans. A supplied final answer can be checked, but the student's mental process cannot be recovered. The partner asks and records the student's own reflection as a hypothesis. Counts from two problems per topic are descriptive. No probabilistic misconception score, learning-style label or claim of improved grades is shown.
 
-No frontend credentials or `NEXT_PUBLIC` provider secrets exist. Hosted LLM adapters require a separate reviewed data policy; none is currently implemented. Unit and integration tests do not make an educational effectiveness claim. See [the product specification](student-mvp.md) and [verification report](student-mvp-verification.md).
+No frontend credentials or `NEXT_PUBLIC` provider secrets exist. The launcher removes HF_TOKEN from the frontend process. Optional hosted inference is limited to explicitly confirmed fictional context; a real-student data policy remains unimplemented. Unit and integration tests do not make an educational effectiveness claim. See [the product specification](student-mvp.md) and [verification report](student-mvp-verification.md).
 
 The contextual extension and current boundaries are detailed in [Strategy Studio architecture](context-aware-studio.md).

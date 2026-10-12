@@ -12,6 +12,25 @@ import time
 ROOT = Path(__file__).resolve().parents[1]
 
 
+def load_local_environment(env, path):
+    """Literal, allowlisted .env values; existing process configuration wins."""
+    allowed = {'AI_PROVIDER', 'HF_TOKEN', 'HF_MODEL', 'HF_FREE_TIER_CONFIRMED',
+               'HF_DAILY_REQUEST_LIMIT', 'HF_MONTHLY_REQUEST_LIMIT', 'TEACHERLENS_PROVIDER',
+               'TEACHERLENS_OLLAMA_URL', 'TEACHERLENS_OLLAMA_MODEL', 'TEACHERLENS_OLLAMA_LOCALES'}
+    if path.exists():
+        for line in path.read_text(encoding='utf-8').splitlines():
+            if not line.strip() or line.lstrip().startswith('#'): continue
+            key, separator, value = line.partition('=')
+            if not separator or key.strip() not in allowed:
+                raise ValueError('Unsupported local .env setting. See .env.example; values are never executed.')
+            env.setdefault(key.strip(), value.strip())
+    return env
+
+
+def frontend_environment(env):
+    return {key: value for key, value in env.items() if key.upper() != 'HF_TOKEN'}
+
+
 def main():
     signal.signal(signal.SIGTERM, lambda *_: (_ for _ in ()).throw(KeyboardInterrupt()))
     parser = argparse.ArgumentParser(description=__doc__)
@@ -21,13 +40,15 @@ def main():
     npm = shutil.which('npm.cmd' if os.name == 'nt' else 'npm')
     if not npm:
         raise SystemExit('Install Node.js 24 LTS and npm, then run npm ci in frontend/.')
-    env = os.environ.copy()
+    env = load_local_environment(os.environ.copy(), ROOT / '.env')
     env['TEACHERLENS_GATEWAY_KEY'] = env.get('TEACHERLENS_GATEWAY_KEY') or secrets.token_urlsafe(48)
     env['TEACHERLENS_BACKEND_URL'] = 'http://127.0.0.1:8000'
     env['TEACHERLENS_FRONTEND_ORIGIN'] = 'http://127.0.0.1:3000'
     if args.test_db:
         env['TEACHERLENS_DB'] = str(ROOT / 'outputs' / 'mvp-browser-tests.sqlite')
         env['TEACHERLENS_PROVIDER'] = 'demo'
+        env['AI_PROVIDER'] = 'demo'
+        env.pop('HF_TOKEN', None)
     env['NEXT_TELEMETRY_DISABLED'] = '1'
     flags = subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0
     processes = []
@@ -35,7 +56,7 @@ def main():
         processes.append(subprocess.Popen([sys.executable, '-m', 'uvicorn', 'teacherlens.student.api:create_app',
                                           '--factory', '--host', '127.0.0.1', '--port', '8000'], cwd=ROOT, env=env, creationflags=flags))
         processes.append(subprocess.Popen([npm, 'run', 'start' if args.production_build else 'dev'],
-                                         cwd=ROOT / 'frontend', env=env, creationflags=flags))
+                                         cwd=ROOT / 'frontend', env=frontend_environment(env), creationflags=flags))
         print('TeacherLens local synthetic demo: http://127.0.0.1:3000\nPress Ctrl+C to stop both servers.', flush=True)
         while all(process.poll() is None for process in processes):
             time.sleep(.5)

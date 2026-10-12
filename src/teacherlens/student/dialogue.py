@@ -235,10 +235,13 @@ def converse(context: dict, obstacle: str, provider: DialogueProvider | DemoProv
         else:
             choice = DialogueChoice.model_validate(provider.respond(context))
             validate_generated(choice, context['locale'])
-    except (httpx.HTTPError, ValueError, KeyError, TypeError, AttributeError):
+    except (httpx.HTTPError, ValueError, KeyError, TypeError, AttributeError) as exc:
         choice = demo_reply(context, obstacle)
         actual_mode = 'demo'
-        fallback = 'Local AI was unavailable, this locale is unsupported, or its response failed validation. This turn uses authored English demo rules.'
+        from .huggingface import CloudFailure
+        fallback = (str(exc) if isinstance(exc, CloudFailure) else
+                    'Cloud AI was unavailable or its response failed validation. This turn uses authored English demo rules.' if mode == 'huggingface' else
+                    'Local AI was unavailable, this locale is unsupported, or its response failed validation. This turn uses authored English demo rules.')
     if actual_mode == 'demo' and context['locale'] != 'en' and not fallback:
         fallback = 'The demo is English only. Your requested locale is retained, but no reviewed translation is available.'
     checked = context['checked_math']
@@ -252,7 +255,7 @@ def converse(context: dict, obstacle: str, provider: DialogueProvider | DemoProv
     use_scaffold = bool(checked['original'] and not responding_to_plan and not alternative)
     question = checked['question'] if use_scaffold else choice.question
     return {'mode': actual_mode, 'fallback': fallback, 'locale': choice.locale, 'requested_locale': context['locale'],
-            'message': choice.reply, 'question': question, 'question_source': 'authored_math' if use_scaffold else 'demo' if actual_mode == 'demo' else 'local_model', 'checked_math': checked,
+            'message': choice.reply, 'question': question, 'question_source': 'authored_math' if use_scaffold else 'demo' if actual_mode == 'demo' else 'cloud_model' if actual_mode == 'huggingface' else 'local_model', 'checked_math': checked,
             'proposal': {**choice.proposal.model_dump(), 'evidence': refs, 'approved': False},
             'strategies': [{'id': key, **STRATEGIES[key]} for key in choice.strategies],
             'evidence': context['diagnostic_counts'], 'student_report': obstacle,

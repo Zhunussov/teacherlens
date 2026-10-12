@@ -4,7 +4,7 @@
 
 Milestone 4 is a local student-first mathematics workflow: checked diagnostic → collaborative strategy choices → editable plan → deliberate practice → fresh follow-up → reflection. Next.js, TypeScript and Tailwind provide five responsive views; FastAPI and SymPy check an original 24-problem bank. Unreliable research classifiers are never used as diagnostic ground truth.
 
-**Synthetic demo only.** Demo guidance is explicitly authored, not live AI. Actual checked answers, plans and attempts are stored locally. An optional local Ollama adapter generates contextual dialogue and editable proposals from a bounded message/history/evidence summary. Verified algebra checks remain separate. Do not enter private student records. No production deployment or academic improvement is claimed.
+**Fictional testing only.** Demo guidance is explicitly authored, not live AI. Checked answers, plans and attempts are stored locally. Optional Hugging Face or local Ollama adapters generate contextual dialogue and editable proposals from bounded evidence. Cloud AI requires free-account configuration and per-message confirmation of fictional context; follow the [cloud setup](docs/huggingface-ai.md). Verified algebra checks remain separate. Do not enter private student records. No production deployment or academic improvement is claimed.
 
 ```powershell
 .venv\Scripts\Activate.ps1
@@ -116,4 +116,4 @@ Read [architecture](docs/architecture.md), [dataset research](docs/research.md),
 
 ### Context-aware Strategy Studio
 
-The Studio now uses bounded multi-turn context and deterministic algebra checks. The local Ollama adapter can generate contextual prose and structured editable proposals; without a configured model, authored demo rules remain clearly labeled. Plans require explicit review and approval. See [conversation architecture, configuration and limitations](docs/context-aware-studio.md).
+The Studio uses bounded multi-turn context and deterministic algebra checks. Optional Hugging Face cloud AI uses a pinned Qwen/Nscale route without local model downloads; the existing Ollama adapter remains optional. Missing configuration or failed generation falls back to visibly labeled authored demo rules. Plans require explicit review and approval. Follow [Hugging Face PowerShell setup, free-credit restrictions and verification](docs/huggingface-ai.md); see also the [original conversation architecture](docs/context-aware-studio.md). Cloud calls are restricted to explicitly confirmed fictional context. No live inference or multilingual educational quality has yet been verified.

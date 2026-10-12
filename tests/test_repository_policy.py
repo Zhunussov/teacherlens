@@ -14,7 +14,7 @@ class RepositoryPolicyTests(unittest.TestCase):
         forbidden = []
         for filename in filter(None, tracked):
             path = PurePosixPath(filename)
-            if filename == 'tests/fixtures/synthetic.csv':
+            if filename in ('tests/fixtures/synthetic.csv', '.env.example'):
                 continue
             if (filename.startswith(('data/', 'outputs/', 'reports/private/')) or path.suffix.lower() in extensions
                     or any(part in ('node_modules', '.next', 'test-results', 'playwright-report') for part in path.parts)

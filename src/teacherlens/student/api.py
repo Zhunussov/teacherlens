@@ -1,5 +1,5 @@
 """Same-origin gateway API for the synthetic, local student workflow."""
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import os
 import secrets
 from typing import Literal
@@ -11,6 +11,7 @@ from .math_engine import BANK, TOPICS, assess, form, verify_bank
 from .partner import DemoProvider, OllamaProvider, STRATEGIES
 from .dialogue import Locale, StrategyDraft, context_for, converse
 from .store import Store
+from .huggingface import Budget, HuggingFaceProvider, MODEL
 
 
 @dataclass(frozen=True)
@@ -21,12 +22,19 @@ class Settings:
     ollama_url: str = 'http://127.0.0.1:11434'
     ollama_model: str = ''
     ollama_locales: str = 'en'
+    hf_token: str = field(default='', repr=False)
+    hf_model: str = MODEL
+    hf_free_tier_confirmed: bool = False
+    hf_daily_limit: int = 5
+    hf_monthly_limit: int = 50
 
     @classmethod
     def environment(cls):
         return cls(os.getenv('TEACHERLENS_GATEWAY_KEY', ''), os.getenv('TEACHERLENS_DB', 'data/student-mvp/demo.sqlite'),
-                   os.getenv('TEACHERLENS_PROVIDER', 'demo'), os.getenv('TEACHERLENS_OLLAMA_URL', 'http://127.0.0.1:11434'),
-                   os.getenv('TEACHERLENS_OLLAMA_MODEL', ''), os.getenv('TEACHERLENS_OLLAMA_LOCALES', 'en'))
+                   os.getenv('AI_PROVIDER', os.getenv('TEACHERLENS_PROVIDER', 'demo')), os.getenv('TEACHERLENS_OLLAMA_URL', 'http://127.0.0.1:11434'),
+                   os.getenv('TEACHERLENS_OLLAMA_MODEL', ''), os.getenv('TEACHERLENS_OLLAMA_LOCALES', 'en'),
+                   os.getenv('HF_TOKEN', ''), os.getenv('HF_MODEL', MODEL), os.getenv('HF_FREE_TIER_CONFIRMED', '').lower() == 'true',
+                   int(os.getenv('HF_DAILY_REQUEST_LIMIT', '5')), int(os.getenv('HF_MONTHLY_REQUEST_LIMIT', '50')))
 
 
 class Input(BaseModel):
@@ -49,6 +57,7 @@ class Conversation(Input):
     locale: Locale = 'en'
     problem_id: str | None = Field(default=None, max_length=40)
     step: str = Field(default='', max_length=165)
+    external_ai_consent: bool = Field(default=False, strict=True)
 
 
 class PlanInput(StrategyDraft):
@@ -92,16 +101,25 @@ def create_app(settings=None, provider=None):
     settings = settings or Settings.environment()
     if len(settings.gateway_key) < 32:
         raise ValueError('Set TEACHERLENS_GATEWAY_KEY to a random server-only value of at least 32 characters, or use scripts/dev_mvp.py.')
-    if settings.provider_mode not in ('demo', 'ollama'):
-        raise ValueError('Supported providers: demo or local ollama.')
+    if settings.provider_mode not in ('demo', 'ollama', 'huggingface'):
+        raise ValueError('Supported providers: demo, huggingface or local ollama.')
     verify_bank()
     store = Store(settings.db_path)
     provider_mode, provider_notice = settings.provider_mode, None
     if provider is None and provider_mode == 'ollama' and not settings.ollama_model:
         provider_mode = 'demo'
         provider_notice = 'No local model is configured. Authored demo mode is active; no live AI request is made.'
-    provider = provider or (DemoProvider() if provider_mode == 'demo' else OllamaProvider(
-        settings.ollama_url, settings.ollama_model, tuple(settings.ollama_locales.split(','))))
+    cloud = None
+    if settings.provider_mode == 'huggingface':
+        cloud = provider or HuggingFaceProvider(settings.hf_token, settings.hf_model, settings.hf_free_tier_confirmed,
+                                               Budget(settings.db_path+'.cloud-budget.sqlite', settings.hf_daily_limit, settings.hf_monthly_limit))
+        if not cloud.ready:
+            provider_mode = 'demo'
+            provider_notice = cloud.reason + ' Authored demo mode is active; no cloud call is made.'
+        provider = cloud
+    else:
+        provider = provider or (DemoProvider() if provider_mode == 'demo' else OllamaProvider(
+            settings.ollama_url, settings.ollama_model, tuple(settings.ollama_locales.split(','))))
     app = FastAPI(title='TeacherLens local synthetic MVP', docs_url=None, redoc_url=None, openapi_url=None)
 
     @app.middleware('http')
@@ -140,7 +158,17 @@ def create_app(settings=None, provider=None):
     @app.get('/state')
     def state(key=Depends(token)):
         with store.session(key) as value:
-            return {**snapshot(value), 'provider_mode': provider_mode, 'provider_notice': provider_notice}
+            return {**snapshot(value), **provider_metadata()}
+
+    def provider_metadata():
+        return {'provider_mode': provider_mode, 'provider_notice': provider_notice,
+                'provider_status': cloud.health() if cloud else {'selected': settings.provider_mode,
+                    'ready': provider_mode != 'demo', 'check_kind': 'configuration_only'}}
+
+    @app.get('/provider/health')
+    def provider_health(key=Depends(token)):
+        with store.session(key):
+            return provider_metadata()
 
     @app.post('/assessment/start')
     def start(data: Start, key=Depends(token)):
@@ -179,14 +207,19 @@ def create_app(settings=None, provider=None):
             if data.problem_id and data.problem_id not in allowed:
                 raise HTTPException(422, 'Choose a problem from your recorded diagnostic or assigned practice.')
             context = context_for(value, data.text, data.obstacle, data.locale, evidence(diagnostic), data.problem_id, data.step)
-            response = converse(context, data.obstacle, provider, provider_mode)
+            consent_notice = None
+            if provider_mode == 'huggingface' and (not data.external_ai_consent or value['data_kind'] != 'synthetic_demo'):
+                consent_notice = 'Cloud inference requires confirmation that this context contains fictional data only. This turn uses authored demo rules; nothing was sent externally.'
+            response = converse(context, data.obstacle, provider, 'demo' if consent_notice else provider_mode)
+            if consent_notice:
+                response['fallback'] = consent_notice
             if provider_notice:
                 response['fallback'] = provider_notice
             turn_id = secrets.token_hex(12)
             response['proposal']['source_turn_id'] = turn_id
             value['conversation'].append({'id': turn_id, 'student_text': data.text, 'problem_id': data.problem_id,
                                           'step': data.step, 'locale': data.locale, 'assistant': response})
-            return snapshot(value)
+            return {**snapshot(value), **provider_metadata()}
 
     @app.put('/plan')
     def plan(data: PlanInput, key=Depends(token)):
