@@ -27,7 +27,7 @@ npm run build
 npm run preview
 ```
 
-Open http://127.0.0.1:3001. Development: `npm run dev`. Checks: `npm run test:math`, `npm run typecheck`, `npm run build`, `npm run test:e2e`. Node.js 24 is used in CI. Vercel Hobby root directory: **public-demo**, output: **out**, environment variables: **none**. Read [public architecture, privacy, limitations and deployment](docs/public-demo.md).
+Open http://127.0.0.1:3001. Development: `npm run dev`. Checks: `npm run test:math`, `npm run typecheck`, `npm run build`, `npm run test:e2e`. Node.js 24 is used in CI. Vercel Hobby root directory: **public-demo**, output setting: **Next.js default (.next)**, environment variables: **none**. Read [public architecture, privacy, limitations and deployment](docs/public-demo.md).
 
 ## Research and project portfolio
 
