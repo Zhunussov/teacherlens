@@ -1,23 +1,39 @@
-# TeacherLens · Student strategy MVP
+# TeacherLens · A strategy of your own
 
 **Every student is different. Every student deserves a different strategy.**
 
-Milestone 4 is a local student-first mathematics workflow: checked diagnostic → collaborative strategy choices → editable plan → deliberate practice → fresh follow-up → reflection. Next.js, TypeScript and Tailwind provide five responsive views; FastAPI and SymPy check an original 24-problem bank. Unreliable research classifiers are never used as diagnostic ground truth.
+A mathematics mistake should lead to a useful next step, not a label about a student's ability. TeacherLens helps students check equations, reflect on what felt difficult, choose an approach and test it deliberately.
 
-**Fictional testing only.** Demo guidance is explicitly authored, not live AI. Checked answers, plans and attempts are stored locally. Optional Hugging Face or local Ollama adapters generate contextual dialogue and editable proposals from bounded evidence. Cloud AI requires free-account configuration and per-message confirmation of fictional context; follow the [cloud setup](docs/huggingface-ai.md). Verified algebra checks remain separate. Do not enter private student records. No production deployment or academic improvement is claimed.
+**Public-demo deployment:** verification in progress; no public URL is claimed yet.
+
+## The student journey
+
+Welcome → six equations → understand the evidence → edit and approve a strategy → targeted practice → six fresh equations → reflect and revise.
+
+- Original bank of 24 verified linear-equation, distributive-property and negative-number problems.
+- Exact rational checks of answers and supported intermediate equations; verified errors remain distinct from possible causes.
+- Explicitly labeled rule-based strategies personalized using checked evidence and the student's choices. No external AI or API key required.
+- Russian and English interface, explanations and strategy templates; independent educational translation review is still pending.
+- No login, requested identity, database or answer uploads. Progress stays in the browser with resume and reset; it can be lost when browser data is cleared.
+
+The public app is an independent static Next.js/React/TypeScript export in `public-demo/`. It has no dependency on localhost, FastAPI, SQLite, Ollama or Hugging Face. There is no academic improvement or production-scale claim.
+
+## Run the public demo
 
 ```powershell
-.venv\Scripts\Activate.ps1
-python -m pip install -r requirements/mvp.txt -e ".[mvp]"
-cd frontend
+cd public-demo
 npm ci
-cd ..
-python scripts/dev_mvp.py
+npm run build
+npm run preview
 ```
 
-Open **http://127.0.0.1:3000**. For first-time environment creation, optional local AI, browser tests and an optimized local build, see [MVP instructions](docs/student-mvp.md). Read [student architecture](docs/student-architecture.md) and [verification status](docs/student-mvp-verification.md).
+Open http://127.0.0.1:3001. Development: `npm run dev`. Checks: `npm run test:math`, `npm run typecheck`, `npm run build`, `npm run test:e2e`. Node.js 24 is used in CI. Vercel Hobby root directory: **public-demo**, output: **out**, environment variables: **none**. Read [public architecture, privacy, limitations and deployment](docs/public-demo.md).
 
-The complete Milestones 1–3 research workflow below remains available independently of the student app. Restricted Kaggle data is never required by the MVP.
+## Research and project portfolio
+
+Earlier ML experiments revealed poor generalization to unseen misconception labels; those classifiers are **not** used to diagnose students in this product. The preserved research below documents actual metrics and limitations. The earlier local FastAPI/SQLite prototype remains in `frontend/` and `src/teacherlens/student/`; its optional AI credentials are unrelated to the public demo.
+
+Portfolio package: [one-page overview](docs/portfolio-overview.md), [CV description](docs/cv-description.md), [60-second demo script](docs/demo-walkthrough.md). Before using the project with students, arrange appropriate pilot consent and educator review; no effectiveness results or adoption figures are invented.
 
 ---
 

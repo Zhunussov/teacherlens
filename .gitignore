@@ -30,3 +30,6 @@ test-results/
 *.sqlite*
 *.log
 frontend/next-env.d.ts
+public-demo/next-env.d.ts
+out/
+.vercel/
