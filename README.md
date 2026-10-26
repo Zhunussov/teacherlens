@@ -8,6 +8,10 @@ A mathematics mistake should lead to a useful next step, not a label about a stu
 
 ## The student journey
 
+![TeacherLens public welcome screen on desktop, Russian interface](docs/images/public-welcome-desktop.png)
+
+[View the mobile screenshot](docs/images/public-welcome-mobile.png). These are real screenshots of the public welcome screen and contain no student records.
+
 Welcome → six equations → understand the evidence → edit and approve a strategy → targeted practice → six fresh equations → reflect and revise.
 
 - Original bank of 24 verified linear-equation, distributive-property and negative-number problems.
@@ -34,6 +38,8 @@ Open http://127.0.0.1:3001. Development: `npm run dev`. Checks: `npm run test:ma
 Earlier ML experiments revealed poor generalization to unseen misconception labels; those classifiers are **not** used to diagnose students in this product. The preserved research below documents actual metrics and limitations. The earlier local FastAPI/SQLite prototype remains in `frontend/` and `src/teacherlens/student/`; its optional AI credentials are unrelated to the public demo.
 
 Portfolio package: [one-page overview](docs/portfolio-overview.md), [CV description](docs/cv-description.md), [60-second demo script](docs/demo-walkthrough.md). Before using the project with students, arrange appropriate pilot consent and educator review; no effectiveness results or adoption figures are invented.
+
+Admissions review: [verification and limitations](docs/admissions-verification.md), [optional anonymous pilot questionnaire](docs/pilot-questionnaire.md). The questionnaire is a preparation document; no pilot responses have been collected or claimed.
 
 ---
 

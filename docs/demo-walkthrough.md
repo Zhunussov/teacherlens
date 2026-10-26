@@ -1,15 +1,15 @@
 # A 60-second TeacherLens walkthrough
 
-Verified public demo: https://teacherlens-public-demo.vercel.app (October 26, 2026).
+Verified public demo: https://teacherlens-public-demo.vercel.app (October 26, 2026). Rehearse at a natural pace; the spoken text below is approximately 125 words. Use cuts between prepared fictional stages.
 
-**0–10 seconds — the idea.** “Every student is different. TeacherLens helps a student find a strategy, rather than only receive an answer. The public prototype works without an account or external AI.” Show the welcome screen and choose Russian or English.
+**0–10 seconds — the idea.** “Every student deserves a different strategy. TeacherLens helps students turn mathematics mistakes into a plan they can choose, practise and revise.” Show the welcome screen and language selector.
 
-**10–23 seconds — evidence.** Open a completed fictional diagnostic, or show one submitted example. “We check the mathematics exactly. We distinguish a verified bad step from an unknown explanation of the student's thinking.” Show a non-equivalent step and the optional verified worked step.
+**10–23 seconds — evidence.** Show a fictional diagnostic with a wrong intermediate equation. “It checks answers and supported equation steps with exact arithmetic. An incorrect transformation is evidence; a student's reason for making it remains uncertain.”
 
-**23–38 seconds — student choice.** On the review screen, select signs or parentheses. “The student's own reflection joins the checked evidence. A transparent rule engine proposes a focus and methods with tradeoffs.” Edit a goal, choose a method and explicitly approve the plan.
+**23–38 seconds — student choice.** Select a difficulty, edit the goal and approve the plan. “Students add their own perspective, compare methods and approve an editable plan. Suggestions explain why a method might help.”
 
-**38–49 seconds — deliberate practice.** Show an assigned practice problem and its checklist. “Practice targets the selected skills. A completed attempt is recorded separately from mathematical correctness.”
+**38–49 seconds — deliberate practice.** Show practice, then cut to the follow-up. “Targeted practice leads to different follow-up problems and reflection. Score changes describe this session; they do not prove learning gains.”
 
-**49–60 seconds — reflect honestly.** Show a fictional completed follow-up and reflection. “The follow-up uses different problems. A change in score is descriptive, not proof of learning gains. The student chooses what to keep or revise. All answers stay in the browser.”
+**49–60 seconds — reflect honestly.** Show reflection, then return to the welcome/research link. “The public prototype uses transparent rules, not live AI. Earlier machine-learning research exposed weak generalization, shaping this safer design. No account is required; progress stays in the browser.”
 
 Prepare a clearly labeled fictional session before filming; do not imply that someone completed the entire learning cycle in sixty seconds. No user counts, outcomes or AI capabilities should be added to the narration. Use the verified public URL above.

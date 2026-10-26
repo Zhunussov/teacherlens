@@ -1,4 +1,4 @@
-# TeacherLens — product and technical overview
+# TeacherLens — MBZUAI project summary
 
 **Every student is different. Every student deserves a different strategy.**
 
@@ -12,4 +12,8 @@ Earlier work investigated the Kaggle MAP competition with reproducible TF-IDF, s
 
 Engineering validation includes arithmetic and input-safety tests, Python parity checks, TypeScript validation, a production build, browser learning journeys, mobile checks and automated accessibility checks. These establish implementation behavior, not educational effectiveness. The small bank is not calibrated; local results are self-practice evidence, not secure assessment records. There are no claimed users, learning gains or production-scale outcomes.
 
-Next steps are a small appropriately consented usability pilot, educator review of problem feedback and translations, and analysis of whether students can explain and revise their chosen strategy. Kazakh, accounts, classroom analytics, expanded curriculum and carefully evaluated AI conversations remain future work. Live demo: https://teacherlens-public-demo.vercel.app. The deployed HTTPS application passed all three public browser journeys on October 26, 2026, without Vercel authentication. Source: https://github.com/Zhunussov/teacherlens/tree/feature/public-student-demo.
+The research result changed the engineering direction: unreliable label prediction became a reason to build a narrower, verifiable learning workflow. This connects reproducible ML evaluation with product design, exact mathematics and transparent limits rather than treating model output as educational authority.
+
+Next steps are an appropriately consented usability pilot, educator review of feedback and translations, and investigation of whether students can explain and revise their chosen strategy. Kazakh, accounts, classroom analytics, expanded curriculum and evaluated AI conversations remain future work. There is no claim of admissions affiliation or endorsement.
+
+**Review:** [live demo](https://teacherlens-public-demo.vercel.app/) · [source](https://github.com/Zhunussov/teacherlens/tree/feature/public-student-demo) · [research findings](misconception-aware-results.md) · [verification](admissions-verification.md). The HTTPS application passed all three public browser journeys on October 26, 2026, without Vercel authentication.
