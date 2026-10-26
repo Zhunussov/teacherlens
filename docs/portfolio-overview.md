@@ -1,0 +1,19 @@
+# TeacherLens — MBZUAI project summary
+
+**Every student is different. Every student deserves a different strategy.**
+
+TeacherLens explores a practical educational question: how can a student turn a mathematics mistake into a specific strategy they can try, evaluate and revise? A wrong answer alone does not establish a student's thought process or lasting ability. The product separates mathematical evidence from possible explanations and invites the student to choose an approach.
+
+The public prototype offers a complete Russian/English journey without registration: six starting equations, a review of verified answers and intermediate steps, student-selected difficulties, an editable learning plan, targeted practice, six different follow-up equations and reflection. Four authored methods explain both their rationale and tradeoffs. Guidance is explicitly rule-based; it is not presented as a live AI conversation.
+
+The independently deployable application uses Next.js, React and TypeScript with static export. Exact rational arithmetic and a bounded parser check a curated bank of 24 original problems. Python tests cross-check the browser bank against the existing SymPy implementation. Browser-local persistence permits resume and reset without collecting student identities or introducing a production database. The application needs no paid infrastructure, model weights or inference credentials. English and Russian interface and instructional templates are implemented; educator review of translations remains pending.
+
+Earlier work investigated the Kaggle MAP competition with reproducible TF-IDF, screening, hierarchical and embedding baselines using question-grouped evaluation. The evaluation exposed poor generalization to unseen misconception labels. Those limitations are documented and the classifiers are not used as diagnostic truth in the student product. The original Python research and its history remain available independently.
+
+Engineering validation includes arithmetic and input-safety tests, Python parity checks, TypeScript validation, a production build, browser learning journeys, mobile checks and automated accessibility checks. These establish implementation behavior, not educational effectiveness. The small bank is not calibrated; local results are self-practice evidence, not secure assessment records. There are no claimed users, learning gains or production-scale outcomes.
+
+The research result changed the engineering direction: unreliable label prediction became a reason to build a narrower, verifiable learning workflow. This connects reproducible ML evaluation with product design, exact mathematics and transparent limits rather than treating model output as educational authority.
+
+Next steps are an appropriately consented usability pilot, educator review of feedback and translations, and investigation of whether students can explain and revise their chosen strategy. Kazakh, accounts, classroom analytics, expanded curriculum and evaluated AI conversations remain future work. There is no claim of admissions affiliation or endorsement.
+
+**Review:** [live demo](https://teacherlens-public-demo.vercel.app/) · [source](https://github.com/Zhunussov/teacherlens/tree/feature/public-student-demo) · [research findings](misconception-aware-results.md) · [verification](admissions-verification.md). The HTTPS application passed all three public browser journeys on October 26, 2026, without Vercel authentication.

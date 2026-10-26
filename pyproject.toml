@@ -9,6 +9,10 @@ description = "Reproducible research baseline for mathematical misconception det
 requires-python = ">=3.11"
 dependencies = ["numpy==2.3.5", "scipy==1.16.3", "scikit-learn==1.8.0", "joblib==1.5.2", "threadpoolctl==3.7.0"]
 
+[project.optional-dependencies]
+embeddings = ["onnxruntime==1.31.0", "tokenizers==0.23.3"]
+mvp = ["fastapi==0.143.0", "uvicorn==0.54.0", "sympy==1.14.0", "httpx==0.28.1"]
+
 [project.scripts]
 teacherlens = "teacherlens.cli:main"
 

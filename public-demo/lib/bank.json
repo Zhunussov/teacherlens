@@ -1,0 +1,170 @@
+[
+  {
+    "id": "linear-1",
+    "topic": "linear",
+    "equation": "x + 5 = 12",
+    "answer": "7",
+    "step": "x = 12 - 5"
+  },
+  {
+    "id": "linear-2",
+    "topic": "linear",
+    "equation": "3*x = 18",
+    "answer": "6",
+    "step": "x = 18/3"
+  },
+  {
+    "id": "linear-3",
+    "topic": "linear",
+    "equation": "x + 8 = 13",
+    "answer": "5",
+    "step": "x = 13 - 8"
+  },
+  {
+    "id": "linear-4",
+    "topic": "linear",
+    "equation": "4*x = 28",
+    "answer": "7",
+    "step": "x = 28/4"
+  },
+  {
+    "id": "linear-5",
+    "topic": "linear",
+    "equation": "x + 4 = 13",
+    "answer": "9",
+    "step": "x = 13 - 4"
+  },
+  {
+    "id": "linear-6",
+    "topic": "linear",
+    "equation": "5*x = 20",
+    "answer": "4",
+    "step": "x = 20/5"
+  },
+  {
+    "id": "linear-7",
+    "topic": "linear",
+    "equation": "2*x + 3 = 11",
+    "answer": "4",
+    "step": "2*x = 8"
+  },
+  {
+    "id": "linear-8",
+    "topic": "linear",
+    "equation": "5*x - 4 = 16",
+    "answer": "4",
+    "step": "5*x = 20"
+  },
+  {
+    "id": "distribution-1",
+    "topic": "distribution",
+    "equation": "2*(x + 3) = 14",
+    "answer": "4",
+    "step": "2*x + 6 = 14"
+  },
+  {
+    "id": "distribution-2",
+    "topic": "distribution",
+    "equation": "3*(x - 2) = 12",
+    "answer": "6",
+    "step": "3*x - 6 = 12"
+  },
+  {
+    "id": "distribution-3",
+    "topic": "distribution",
+    "equation": "4*(x + 2) = 28",
+    "answer": "5",
+    "step": "4*x + 8 = 28"
+  },
+  {
+    "id": "distribution-4",
+    "topic": "distribution",
+    "equation": "2*(x - 4) = 6",
+    "answer": "7",
+    "step": "2*x - 8 = 6"
+  },
+  {
+    "id": "distribution-5",
+    "topic": "distribution",
+    "equation": "2*(x + 4) = 20",
+    "answer": "6",
+    "step": "2*x + 8 = 20"
+  },
+  {
+    "id": "distribution-6",
+    "topic": "distribution",
+    "equation": "3*(x - 1) = 12",
+    "answer": "5",
+    "step": "3*x - 3 = 12"
+  },
+  {
+    "id": "distribution-7",
+    "topic": "distribution",
+    "equation": "3*(2*x + 1) = 21",
+    "answer": "3",
+    "step": "6*x + 3 = 21"
+  },
+  {
+    "id": "distribution-8",
+    "topic": "distribution",
+    "equation": "-2*(x - 3) = 10",
+    "answer": "-2",
+    "step": "-2*x + 6 = 10"
+  },
+  {
+    "id": "negative-1",
+    "topic": "negative",
+    "equation": "x - (-3) = 8",
+    "answer": "5",
+    "step": "x + 3 = 8"
+  },
+  {
+    "id": "negative-2",
+    "topic": "negative",
+    "equation": "-2*x = 10",
+    "answer": "-5",
+    "step": "x = 10/(-2)"
+  },
+  {
+    "id": "negative-3",
+    "topic": "negative",
+    "equation": "x - (-4) = 9",
+    "answer": "5",
+    "step": "x + 4 = 9"
+  },
+  {
+    "id": "negative-4",
+    "topic": "negative",
+    "equation": "-3*x = 12",
+    "answer": "-4",
+    "step": "x = 12/(-3)"
+  },
+  {
+    "id": "negative-5",
+    "topic": "negative",
+    "equation": "x - (-2) = 9",
+    "answer": "7",
+    "step": "x + 2 = 9"
+  },
+  {
+    "id": "negative-6",
+    "topic": "negative",
+    "equation": "-4*x = 12",
+    "answer": "-3",
+    "step": "x = 12/(-4)"
+  },
+  {
+    "id": "negative-7",
+    "topic": "negative",
+    "equation": "-2*x - 5 = 7",
+    "answer": "-6",
+    "step": "-2*x = 12"
+  },
+  {
+    "id": "negative-8",
+    "topic": "negative",
+    "equation": "x + (-6) = -10",
+    "answer": "-4",
+    "step": "x = -10 + 6"
+  }
+]
