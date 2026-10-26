@@ -43,15 +43,23 @@ Vercel Hobby Git-import settings: Root Directory `public-demo`; Framework Next.j
 Public verification can run against a real deployment:
 
 ```powershell
-$env:PUBLIC_DEMO_URL = 'https://THE-VERIFIED-DEPLOYMENT.vercel.app'
+$env:PUBLIC_DEMO_URL = 'https://teacherlens-public-demo.vercel.app'
 npm run test:e2e
 Remove-Item Env:PUBLIC_DEMO_URL
 ```
 
-The URL above is a command placeholder, not a claim that deployment exists. Deployment status and the actual verified URL are recorded in the README and final delivery report only after access and journey checks succeed.
+The URL above is the verified production alias. It returned HTTP 200 without authentication and passed the full public browser suite on October 26, 2026.
 
 ## Launch verification
 
 The Node suite verifies exact arithmetic, all bank answers/steps, invalid and hostile input, step/answer distinctions, student-driven targeting, state validation, plan revision and locale key coverage. Python checks the original-bank parity alongside all existing research tests. Browser tests cover the entire English journey, a Russian mobile journey, RU/EN method translation, invalid answers, persisted progress, revised plans, reset, blocked/corrupt storage and automated accessibility. They record API/LLM/backend request absence. The same suite can exercise the public HTTPS deployment. No measured academic benefit, adoption or live AI result follows from these tests.
 
 Local results on 2026-10-26: 113 Python tests, nine public math/session tests, three public browser journeys and all six preserved prototype browser journeys passed. Both app directories passed TypeScript validation, production builds and dependency audits with zero known vulnerabilities. The public static preview applies the same security headers as the Vercel configuration; tested accessibility views reported no detected WCAG A/AA violations. These results do not establish a public deployment until the HTTPS journey is separately verified.
+
+## Verified public launch — October 26, 2026
+
+Production: https://teacherlens-public-demo.vercel.app. Application source/configuration: commit `c8253a7`, deployed to the existing Hobby team using the official Vercel CLI from `public-demo/`. The CLI uploaded that folder as project root; no Python, local databases, credentials or restricted artifacts were included. Production build succeeded after correcting the Next.js adapter manifest directory to `.next`. The generated deployment has a production alias accessible anonymously, even though generated deployment/preview URLs may have Vercel protection.
+
+All three browser journeys passed against the public alias: complete English cycle, Russian mobile/localization journey and storage-error handling. There were no API, HF, Ollama or localhost-backend requests. Security headers were observed on the anonymous HTTPS response. No subscriptions, upgrades or paid integrations were activated. The existing account displayed free-resource usage warnings; continued availability remains subject to Vercel Hobby limits.
+
+No manual Vercel action remains for this launch. Automatic Git deployment is intentionally not connected: the repository's default branch is the older research foundation, and no merge or repository setting was changed. For updates, deploy from `public-demo/` with `vercel deploy --prod --yes --project teacherlens-public-demo --scope temirlan-s-projects1`, then rerun the public browser suite. If Git automation is configured later, explicitly select the public feature branch and root directory rather than the foundation branch. Share the public feature-branch source link in the application portfolio.

@@ -4,7 +4,7 @@
 
 A mathematics mistake should lead to a useful next step, not a label about a student's ability. TeacherLens helps students check equations, reflect on what felt difficult, choose an approach and test it deliberately.
 
-**Public-demo deployment:** verification in progress; no public URL is claimed yet.
+**Live demo: [Open TeacherLens](https://teacherlens-public-demo.vercel.app)** — deployed on Vercel Hobby and verified anonymously on October 26, 2026. All three public browser journeys passed against this HTTPS URL, including the complete learning cycle, RU/EN switching, persistence and reset. No account or API key is needed.
 
 ## The student journey
 
