@@ -1,3 +1,4 @@
+import {stepFeedback} from './feedback.ts';
 import {assess,bank,form,topics,type Topic} from './math.ts';
 import {copy,methods,topicNames,type Locale,type Method} from './copy.ts';
 export type Stage='welcome'|'diagnostic'|'understand'|'strategy'|'practice'|'retest'|'progress';
@@ -14,9 +15,11 @@ export function focusFor(s:Session):Topic[]{
  const weak=ranked.filter(t=>stats[t].correct<stats[t].total||stats[t].stepErrors);
  return [...new Set([...(selected?[selected]:[]),...weak])].slice(0,2).length?[...new Set([...(selected?[selected]:[]),...weak])].slice(0,2):[ranked[0]];
 }
+export function evidenceFor(s:Session){return s.diagnostic.flatMap(a=>{const p=bank.find(p=>p.id===a.problemId);const evidence=p?stepFeedback(p,a.step,s.locale):null;return evidence?[{...evidence,entered:a.step}]:[];});}
 export function draftFor(s:Session,method?:Method):Plan{
  const focus=focusFor(s),key=method??(s.difficulty==='checking'?'check':focus[0]==='distribution'?'expand':focus[0]==='negative'?'signed':'balance');
- return {method:key,focus,goal:copy[s.locale].planGoal+focus.map(t=>topicNames[s.locale][t]).join(', '),steps:methods[s.locale][key].steps,minutes:10,days:3,criteria:copy[s.locale].planCriteria,revision:(s.plan?.revision??0)+1};
+ const supported=evidenceFor(s).find(e=>e.topic===focus[0]&&e.method===key);
+ return {method:key,focus,goal:supported?.goal??copy[s.locale].planGoal+focus.map(t=>topicNames[s.locale][t]).join(', '),steps:supported?[...supported.steps]:methods[s.locale][key].steps,minutes:10,days:3,criteria:supported?.check??copy[s.locale].planCriteria,revision:(s.plan?.revision??0)+1};
 }
 export function practiceFor(plan:Plan){return plan.focus.flatMap(t=>[3,4].map(n=>bank.find(p=>p.id===`${t}-${n}`)!));}
 export function validPlan(p:Plan){return ['balance','expand','signed','check'].includes(p.method)&&Array.isArray(p.focus)&&p.focus.length>=1&&p.focus.length<=2&&new Set(p.focus).size===p.focus.length&&p.focus.every(t=>topics.includes(t))&&[p.goal,p.criteria].every(s=>typeof s==='string'&&s.trim().length>=5&&s.length<=200)&&Array.isArray(p.steps)&&p.steps.length>=1&&p.steps.length<=5&&p.steps.every(s=>typeof s==='string'&&s.trim().length>0&&s.length<=200)&&Number.isInteger(p.minutes)&&p.minutes>=5&&p.minutes<=20&&Number.isInteger(p.days)&&p.days>=1&&p.days<=5&&Number.isInteger(p.revision)&&p.revision>=1;}

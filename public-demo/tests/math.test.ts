@@ -4,6 +4,35 @@ import {readFileSync} from 'node:fs';
 import {assess,bank,form,solution,value} from '../lib/math.ts';
 import {counts,draftFor,fresh,practiceFor,restore,validPlan} from '../lib/session.ts';
 import {copy,methods} from '../lib/copy.ts';
+import {stepFeedback} from '../lib/feedback.ts';
+
+test('specific feedback requires a matched, verified step and a checked correction',()=>{
+ const p=bank[0];
+ for(const locale of ['ru','en'] as const){
+  const e=stepFeedback(p,'x = 12 + 5',locale)!;
+  assert.equal(e.id,'inverse-addition');assert.equal(e.practice.id,'linear-3');
+  assert.equal(assess(p,p.answer,e.operation).step,'equivalent');
+  assert.ok(!form('diagnostic').some(p=>p.id===e.practice.id));
+ }
+ for(const step of ['', 'x=17','x=12-5','x=garbage','x=12+5+1'])assert.equal(stepFeedback(p,step,'en'),null);
+ assert.equal(stepFeedback(bank[1],'x=12+5','en'),null);
+ const e=stepFeedback(bank.find(p=>p.id==='distribution-1')!,' 2x + 3 = 14 ','en')!;
+ assert.equal(e.id,'partial-distribution');assert.equal(e.practice.topic,'distribution');
+ assert.equal(assess(bank.find(p=>p.id==='distribution-1')!,'4',e.operation).step,'equivalent');
+});
+
+test('identical scores with different verified steps produce different editable plans',()=>{
+ const sessions=[0,2].map(index=>{
+  const s=fresh();s.locale='en';s.diagnostic=form('diagnostic').map(p=>({problemId:p.id,answer:'17',step:''}));
+  s.diagnostic[index].step=index===0?'x=12+5':'2*x+3=14';return s;
+ });
+ assert.deepEqual(Object.values(counts(sessions[0].diagnostic)).map(x=>x.correct),[0,0,0]);
+ assert.deepEqual(Object.values(counts(sessions[1].diagnostic)).map(x=>x.correct),[0,0,0]);
+ const [a,b]=sessions.map(s=>draftFor(s));
+ assert.equal(a.method,'balance');assert.equal(b.method,'expand');assert.notEqual(a.goal,b.goal);assert.notEqual(a.criteria,b.criteria);
+ for(const p of [a,b])assert.ok(validPlan({...p,goal:'My own learning goal'}));
+ sessions[0].difficulty='signs';assert.equal(draftFor(sessions[0]).focus[0],'negative');
+});
 
 test('all 24 original bank answers and worked steps are exact; forms are disjoint',()=>{
  assert.equal(bank.length,24);
